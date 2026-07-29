@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vyapar Bandhu - ऑटो बही खाता</title>
+
+<!-- PWA के लिए Add किया -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#138808">
+<meta name="description" content="Rakti Churti Bahi Khata - Vyapariyon ke liye digital hisaab kitaab app">
+<link rel="icon" href="icon-512.jpg" type="image/jpeg">
+
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7283668314058198" crossorigin="anonymous"></script>
 <style>
 body { font-family: 'Mangal', Arial; background: #f5f5f5; margin: 0; padding: 0; font-size: 14px; }
@@ -74,6 +81,11 @@ input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10
 </div>
 
 <script>
+// Service Worker Register - PWA के लिए
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
 window.onload = function(){
