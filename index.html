@@ -14,14 +14,23 @@ body { font-family: 'Mangal', Arial; background: #f5f5f5; margin: 0; padding: 0;
 .calc-box h2 { margin-top: 0; color: #000080; }
 label { font-weight: bold; font-size: 14px; }
 input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-.btn-main { width: 100%; padding: 14px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; }
+.btn-main { width: 100%; padding: 14px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
+.btn-print { background: #000080; }
 .khata-list { margin: 10px; }
 .khata-card { background: #fff; padding: 12px; margin-bottom: 12px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 2px 4px #ccc; }
 .khata-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; margin: 8px 0; border: 1px solid #ddd; }
-.hindi-date { color:#138808; font-weight:bold; font-size:13px; }
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; }
-.loading { color: #ff9800; }
+.btn-small { padding: 6px 10px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 5px; }
+.btn-speak { background: #ff9800; color: #fff; }
+.btn-print-one { background: #138808; color: #fff; }
+
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea { position: absolute; left: 0; top: 0; width: 100%; }
+ .no-print { display: none; }
+}
 </style>
 </head>
 <body>
@@ -32,11 +41,11 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 </div>
 <div class="today-date" id="todayDate">लोड हो रहा है... ⏳</div>
 
-<div class="search-box">
+<div class="search-box no-print">
   <input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()">
 </div>
 
-<div class="calc-box">
+<div class="calc-box no-print">
   <h2>📒 नया खाता जोड़ें</h2>
   <label>ग्राहक का नाम</label>
   <input type="text" id="custName" placeholder="जैसे: राम कुमार">
@@ -52,7 +61,7 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 
   <label>उधार की तारीख</label>
   <input type="date" id="udharDate">
-  <div class="hindi-date loading" id="datePreview">तारीख: </div>
+  <div class="loading" id="datePreview">तारीख: </div>
 
   <label>मूलधन ₹</label>
   <input type="number" id="mulDhan" placeholder="5000">
@@ -61,18 +70,20 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <input type="number" id="byajRate" value="2" step="0.1">
 
   <button class="btn-main" onclick="khataAdd()">खाता जोड़ें</button>
+  <button class="btn-main btn-print" onclick="printAll()">📄 पूरा हिसाब प्रिंट करें</button>
 </div>
 
 <div class="khata-list" id="khataList"></div>
 
+<div id="printArea" style="display:none;"></div>
+
 <script>
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-// सिंपल अंग्रेजी तारीख फंक्शन
 function getDateString(gDate){
     let d = new Date(gDate);
     let options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-    return d.toLocaleDateString('hi-IN', options); // 30 जुलाई 2026, गुरुवार
+    return d.toLocaleDateString('hi-IN', options);
 }
 
 function updateTodayDate(){
@@ -146,6 +157,62 @@ function hisabNikalo(khata){
   return {total: currentAmount, months: diffMonths.toFixed(1)};
 }
 
+// 1. बोलने वाला फीचर
+function bolKeBatao(khata){
+  let hisab = hisabNikalo(khata);
+  let text = `${khata.name} जी का हिसाब।
+  मूलधन ${khata.mul} रुपया।
+  ${hisab.months} महीना हुआ है।
+  ब्याज दर ${khata.rate} प्रतिशत।
+  कुल देना है ${Math.round(hisab.total)} रुपया।`;
+
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'hi-IN';
+  speech.rate = 0.9;
+  window.speechSynthesis.speak(speech);
+}
+
+// 2. एक खाते का प्रिंट
+function printOne(id){
+  let k = khataData.find(x => x.id == id);
+  let hisab = hisabNikalo(k);
+  let printHtml = `
+  <h2 style="text-align:center;">Vyapar Bandhu - खाता पर्ची</h2>
+  <hr>
+  <p><b>नाम:</b> ${k.name}</p>
+  <p><b>पता:</b> ${k.address || 'नहीं दिया'}</p>
+  <p><b>सामान:</b> ${k.saman}</p>
+  <p><b>तारीख:</b> ${k.engDate}</p>
+  <p><b>मूलधन:</b> ₹${k.mul.toFixed(2)}</p>
+  <p><b>समय:</b> ${hisab.months} महीना</p>
+  <p><b>ब्याज दर:</b> ${k.rate}% महीना</p>
+  <hr>
+  <h3><b>कुल देना:</b> ₹${hisab.total.toFixed(2)}</h3>
+  `;
+  document.getElementById('printArea').innerHTML = printHtml;
+  document.getElementById('printArea').style.display = 'block';
+  window.print();
+  document.getElementById('printArea').style.display = 'none';
+}
+
+// 3. पूरा हिसाब प्रिंट
+function printAll(){
+  let printHtml = `<h2 style="text-align:center;">Vyapar Bandhu - पूरा बही खाता</h2><hr>`;
+  khataData.forEach(k => {
+    let hisab = hisabNikalo(k);
+    printHtml += `
+    <div style="border:1px solid #000; padding:8px; margin:8px 0;">
+      <p><b>${k.name}</b> | ${k.address || ''}</p>
+      <p>सामान: ${k.saman} | तारीख: ${k.engDate}</p>
+      <p>मूलधन: ₹${k.mul.toFixed(2)} | कुल देना: ₹${hisab.total.toFixed(2)}</p>
+    </div>`;
+  });
+  document.getElementById('printArea').innerHTML = printHtml;
+  document.getElementById('printArea').style.display = 'block';
+  window.print();
+  document.getElementById('printArea').style.display = 'none';
+}
+
 function showKhata(data = khataData){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
@@ -166,6 +233,10 @@ function showKhata(data = khataData){
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
       <div class="row"><span>समय:</span><span>${hisab.months} महीना</span></div>
       <div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div>
+      <div class="no-print" style="margin-top:8px;">
+        <button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊 बोलो</button>
+        <button class="btn-small btn-print-one" onclick="printOne(${k.id})">🖨️ प्रिंट</button>
+      </div>
     </div>`;
   });
 }
