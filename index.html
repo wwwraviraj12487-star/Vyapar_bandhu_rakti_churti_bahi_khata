@@ -1,4 +1,3 @@
-<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,9 +28,9 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 
 <div class="gov-board">
   <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
-  <p>Made in Bihar | पंचांग API | 12 महीना बाद चक्रवृद्धि</p>
+  <p>Made in Bihar | 12 महीना बाद चक्रवृद्धि</p>
 </div>
-<div class="today-date" id="todayHindiDate">लोड हो रहा है... ⏳</div>
+<div class="today-date" id="todayDate">लोड हो रहा है... ⏳</div>
 
 <div class="search-box">
   <input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()">
@@ -53,7 +52,7 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 
   <label>उधार की तारीख</label>
   <input type="date" id="udharDate">
-  <div class="hindi-date loading" id="hindiDatePreview">हिंदी तारीख लोड हो रही है...</div>
+  <div class="hindi-date loading" id="datePreview">तारीख: </div>
 
   <label>मूलधन ₹</label>
   <input type="number" id="mulDhan" placeholder="5000">
@@ -69,39 +68,25 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 <script>
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-// Thakur Prasad Panchang API - Error फॉलबैक के साथ
-async function getPanchangDate(gDate){
+// सिंपल अंग्रेजी तारीख फंक्शन
+function getDateString(gDate){
     let d = new Date(gDate);
-    let dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
-    
-    try{
-        let url = `https://api.thakurprasadpanchang.com/v1/panchang?date=${dateStr}&city=Patna`;
-        let res = await fetch(url);
-        if(!res.ok) throw new Error("API fail");
-        let data = await res.json();
-        let tithi = data.tithi + " + data.paksha; // FIX: यहाँ " जोड़ा
-        return `${d.getDate()} ${data.hindu_month} ${data.vikram_samvat}, ${tithi}, ${data.weekday}`;
-    } catch(e){
-        // API नहीं चली तो अंग्रेजी तारीख दे दो
-        return d.toLocaleDateString('hi-IN') + " *अंग्रेजी";
-    }
+    let options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    return d.toLocaleDateString('hi-IN', options); // 30 जुलाई 2026, गुरुवार
 }
 
-async function updateTodayDate(){
-    let date = await getPanchangDate(new Date());
-    document.getElementById('todayHindiDate').innerText = "आज: " + date;
+function updateTodayDate(){
+    document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date());
 }
 updateTodayDate();
 
-document.getElementById('udharDate').addEventListener('change', async function(){
-    document.getElementById('hindiDatePreview').innerText = "हिंदी तारीख: " + await getPanchangDate(this.value);
+document.getElementById('udharDate').addEventListener('change', function(){
+    document.getElementById('datePreview').innerText = "तारीख: " + getDateString(this.value);
 })
 
 window.onload = function(){
   document.getElementById('udharDate').valueAsDate = new Date();
-  getPanchangDate(new Date()).then(d => {
-    document.getElementById('hindiDatePreview').innerText = "हिंदी तारीख: " + d;
-  });
+  document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
   showKhata();
 }
 
@@ -116,21 +101,21 @@ function khataAdd(){
 
   if(!name ||!saman ||!date ||!mul){ alert("सब भरना जरूरी है"); return; }
 
-  getPanchangDate(date).then(hindiDate => {
-    if(photoFile){
-      let reader = new FileReader();
-      reader.onload = function(e){
-        saveKhata(name, address, saman, date, hindiDate, mul, rate, e.target.result);
-      }
-      reader.readAsDataURL(photoFile);
-    } else {
-      saveKhata(name, address, saman, date, hindiDate, mul, rate, "");
+  let engDate = getDateString(date);
+
+  if(photoFile){
+    let reader = new FileReader();
+    reader.onload = function(e){
+      saveKhata(name, address, saman, date, engDate, mul, rate, e.target.result);
     }
-  });
+    reader.readAsDataURL(photoFile);
+  } else {
+    saveKhata(name, address, saman, date, engDate, mul, rate, "");
+  }
 }
 
-function saveKhata(name, address, saman, date, hindiDate, mul, rate, photo){
-  khataData.push({id: Date.now(), name, address, saman, date, hindiDate, mul, rate, photo});
+function saveKhata(name, address, saman, date, engDate, mul, rate, photo){
+  khataData.push({id: Date.now(), name, address, saman, date, engDate, mul, rate, photo});
   localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
   alert("खाता सेव हो गया ✅");
   document.getElementById('custName').value = "";
@@ -155,7 +140,7 @@ function hisabNikalo(khata){
     let remainingMonths = diffMonths - 12;
     currentAmount = firstYear;
     for(let i=0; i<remainingMonths; i++){
-      currentAmount = currentAmount + (currentAmount * khata.rate) / 100; // चक्रवृद्धि
+      currentAmount = currentAmount + (currentAmount * khata.rate) / 100;
     }
   }
   return {total: currentAmount, months: diffMonths.toFixed(1)};
@@ -177,8 +162,7 @@ function showKhata(data = khataData){
       <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
       <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
       ${photoHtml}
-      <div class="row"><span>अंग्रेजी:</span><span>${k.date}</span></div>  // FIX: यहाँ </html> हटा दिया
-      <div class="row hindi-date"><span>हिंदी:</span><span>${k.hindiDate}</span></div>
+      <div class="row"><span>तारीख:</span><span>${k.engDate}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
       <div class="row"><span>समय:</span><span>${hisab.months} महीना</span></div>
       <div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div>
