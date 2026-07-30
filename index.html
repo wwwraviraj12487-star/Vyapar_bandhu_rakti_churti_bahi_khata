@@ -29,7 +29,7 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   body * { visibility: hidden; }
   #printArea, #printArea * { visibility: visible; }
   #printArea { position: absolute; left: 0; top: 0; width: 100%; }
- .no-print { display: none; }
+.no-print { display: none; }
 }
 </style>
 </head>
@@ -157,10 +157,11 @@ function hisabNikalo(khata){
   return {total: currentAmount, months: diffMonths.toFixed(1)};
 }
 
-// 1. बोलने वाला फीचर
+// 1. बोलने वाला फीचर - सामान जोड़ दिया
 function bolKeBatao(khata){
   let hisab = hisabNikalo(khata);
   let text = `${khata.name} जी का हिसाब।
+  सामान है ${khata.saman}।
   मूलधन ${khata.mul} रुपया।
   ${hisab.months} महीना हुआ है।
   ब्याज दर ${khata.rate} प्रतिशत।
@@ -182,7 +183,7 @@ function printOne(id){
   <p><b>नाम:</b> ${k.name}</p>
   <p><b>पता:</b> ${k.address || 'नहीं दिया'}</p>
   <p><b>सामान:</b> ${k.saman}</p>
-  <p><b>तारीख:</b> ${k.engDate}</p>
+  <p><b>तारीख:</b> ${k.engDate || k.date}</p>
   <p><b>मूलधन:</b> ₹${k.mul.toFixed(2)}</p>
   <p><b>समय:</b> ${hisab.months} महीना</p>
   <p><b>ब्याज दर:</b> ${k.rate}% महीना</p>
@@ -203,7 +204,7 @@ function printAll(){
     printHtml += `
     <div style="border:1px solid #000; padding:8px; margin:8px 0;">
       <p><b>${k.name}</b> | ${k.address || ''}</p>
-      <p>सामान: ${k.saman} | तारीख: ${k.engDate}</p>
+      <p>सामान: ${k.saman} | तारीख: ${k.engDate || k.date}</p>
       <p>मूलधन: ₹${k.mul.toFixed(2)} | कुल देना: ₹${hisab.total.toFixed(2)}</p>
     </div>`;
   });
@@ -229,7 +230,7 @@ function showKhata(data = khataData){
       <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
       <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
       ${photoHtml}
-      <div class="row"><span>तारीख:</span><span>${k.engDate}</span></div>
+      <div class="row"><span>तारीख:</span><span>${k.engDate || k.date}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
       <div class="row"><span>समय:</span><span>${hisab.months} महीना</span></div>
       <div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div>
