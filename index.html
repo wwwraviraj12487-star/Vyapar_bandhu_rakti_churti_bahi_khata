@@ -26,6 +26,7 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 .btn-small { padding: 8px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 5px; font-weight: bold; }
 .btn-speak { background: #ff9800; color: #fff; }
 .btn-print-one { background: #138808; color: #fff; }
+.secret { color: #d32f2f; font-weight: bold; } /* कहां रखा है वाला लाल दिखेगा */
 </style>
 </head>
 <body>
@@ -49,7 +50,13 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <textarea id="custAddress" rows="2" placeholder="गांव, थाना, जिला"></textarea>
 
   <label>सामान का नाम</label>
-  <input type="text" id="samanName" placeholder="जैसे: 2 बोरी खाद">
+  <input type="text" id="samanName" placeholder="जैसे: Payal">
+
+  <label>सामान कितना ग्राम</label>
+  <input type="number" id="samanGram" placeholder="जैसे: 104">
+
+  <label>सामान कहां रखा है</label>
+  <input type="text" id="samanLocation" placeholder="जैसे: अनिल मामा के पास तिजोरी में">
 
   <label>सामान का फोटो</label>
   <input type="file" id="samanPhoto" accept="image/*">
@@ -98,6 +105,8 @@ function khataAdd(){
   let name = document.getElementById('custName').value;
   let address = document.getElementById('custAddress').value;
   let saman = document.getElementById('samanName').value;
+  let gram = document.getElementById('samanGram').value;
+  let location = document.getElementById('samanLocation').value;
   let date = document.getElementById('udharDate').value;
   let mul = parseFloat(document.getElementById('mulDhan').value);
   let rate = parseFloat(document.getElementById('byajRate').value);
@@ -110,21 +119,23 @@ function khataAdd(){
   if(photoFile){
     let reader = new FileReader();
     reader.onload = function(e){
-      saveKhata(name, address, saman, date, engDate, mul, rate, e.target.result);
+      saveKhata(name, address, saman, gram, location, date, engDate, mul, rate, e.target.result);
     }
     reader.readAsDataURL(photoFile);
   } else {
-    saveKhata(name, address, saman, date, engDate, mul, rate, "");
+    saveKhata(name, address, saman, gram, location, date, engDate, mul, rate, "");
   }
 }
 
-function saveKhata(name, address, saman, date, engDate, mul, rate, photo){
-  khataData.push({id: Date.now(), name, address, saman, date, engDate, mul, rate, photo});
+function saveKhata(name, address, saman, gram, location, date, engDate, mul, rate, photo){
+  khataData.push({id: Date.now(), name, address, saman, gram, location, date, engDate, mul, rate, photo});
   localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
   alert("खाता सेव हो गया ✅");
   document.getElementById('custName').value = "";
   document.getElementById('custAddress').value = "";
   document.getElementById('samanName').value = "";
+  document.getElementById('samanGram').value = "";
+  document.getElementById('samanLocation').value = "";
   document.getElementById('mulDhan').value = "";
   document.getElementById('samanPhoto').value = "";
   showKhata();
@@ -150,14 +161,14 @@ function hisabNikalo(khata){
   return {total: currentAmount, months: diffMonths.toFixed(1)};
 }
 
-// 1. बोलने वाला फीचर
+// बोलने वाला फीचर - ग्राम और लोकेशन भी बोलेगा
 function bolKeBatao(khata){
   let hisab = hisabNikalo(khata);
   let text = `${khata.name} जी का हिसाब।
-  सामान है ${khata.saman}।
+  सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}।
+  सामान रखा है ${khata.location || 'पता नहीं'}।
   मूलधन ${khata.mul} रुपया।
   ${hisab.months} महीना हुआ है।
-  ब्याज दर ${khata.rate} प्रतिशत।
   कुल देना है ${Math.round(hisab.total)} रुपया।`;
 
   let speech = new SpeechSynthesisUtterance(text);
@@ -166,7 +177,7 @@ function bolKeBatao(khata){
   window.speechSynthesis.speak(speech);
 }
 
-// 2. एक खाते का प्रिंट - NEW WINDOW वाला
+// एक खाते का प्रिंट - लोकेशन नहीं छपेगा
 function printOne(id){
   let k = khataData.find(x => x.id == id);
   let hisab = hisabNikalo(k);
@@ -176,7 +187,7 @@ function printOne(id){
     <hr style="border:2px solid #000;">
     <p><b>नाम:</b> ${k.name}</p>
     <p><b>पता:</b> ${k.address || 'नहीं दिया'}</p>
-    <p><b>सामान:</b> ${k.saman}</p>
+    <p><b>सामान:</b> ${k.saman} ${k.gram? ' - ' + k.gram + ' ग्राम' : ''}</p>
     <p><b>तारीख:</b> ${k.engDate || k.date}</p>
     <p><b>मूलधन:</b> ₹${k.mul.toFixed(2)}</p>
     <p><b>समय:</b> ${hisab.months} महीना</p>
@@ -194,7 +205,7 @@ function printOne(id){
   setTimeout(() => { win.print(); }, 250);
 }
 
-// 3. पूरा हिसाब प्रिंट - NEW WINDOW वाला
+// पूरा हिसाब प्रिंट - लोकेशन नहीं छपेगा
 function printAll(){
   let printHtml = `<div style="padding:20px; font-family:Mangal;">
   <h2 style="text-align:center; color:#000080;">Vyapar Bandhu - पूरा बही खाता</h2>
@@ -205,7 +216,7 @@ function printAll(){
     printHtml += `
     <div style="border:1px solid #000; padding:10px; margin:10px 0; page-break-inside: avoid;">
       <p><b>${k.name}</b> | ${k.address || ''}</p>
-      <p>सामान: ${k.saman} | तारीख: ${k.engDate || k.date}</p>
+      <p>सामान: ${k.saman} ${k.gram? ' - ' + k.gram + ' ग्राम' : ''} | तारीख: ${k.engDate || k.date}</p>
       <p>मूलधन: ₹${k.mul.toFixed(2)} | <b style="color:red;">कुल देना: ₹${hisab.total.toFixed(2)}</b></p>
     </div>`;
   });
@@ -229,11 +240,14 @@ function showKhata(data = khataData){
   data.forEach(k => {
     let hisab = hisabNikalo(k);
     let photoHtml = k.photo? `<img src="${k.photo}">` : "";
+    let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
+    let locationText = k.location? `<div class="row secret"><span>कहां रखा है:</span><span>${k.location}</span></div>` : "";
     list.innerHTML += `
     <div class="khata-card">
       <h3>${k.name}</h3>
       <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
-      <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
+      <div class="row"><span>सामान:</span><span>${k.saman}${gramText}</span></div>
+      ${locationText}
       ${photoHtml}
       <div class="row"><span>तारीख:</span><span>${k.engDate || k.date}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
@@ -251,7 +265,8 @@ function searchKhata(){
   let query = document.getElementById('searchInput').value.toLowerCase();
   let filtered = khataData.filter(k =>
     k.name.toLowerCase().includes(query) ||
-    k.address.toLowerCase().includes(query)
+    k.address.toLowerCase().includes(query) ||
+    k.saman.toLowerCase().includes(query)
   );
   showKhata(filtered);
 }
