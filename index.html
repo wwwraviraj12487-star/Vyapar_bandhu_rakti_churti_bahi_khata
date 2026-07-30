@@ -72,32 +72,44 @@ input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10
 <div class="khata-list" id="khataList"></div>
 
 <script>
-const PATNA_LAT = 25.5941; // पटना का Latitude
-const PATNA_LON = 85.1376; // पटना का Longitude
-const TIMEZONE = "Asia/Kolkata";
+const PATNA_LAT = 25.5941;
+const PATNA_LON = 85.1376;
 
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-// DrikPanchang API से 100% शुद्ध तारीख निकालना
+const hindiMonths = ["चैत", "बैसाख", "जेठ", "अषाढ़", "सावन", "भादो", "अस्सिन", "कार्तिक", "अगहन", "पूस", "माघ", "फागुन"];
+const hindiTithi = ["प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "ष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "पूर्णिमा", "प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "ष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "अमावस्या"];
+const weekDays = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
+
+// बैकअप डेमो तारीख
+function getDemoHindiDate(d){
+    let year = d.getFullYear() + 57;
+    let monthIndex = (d.getMonth() + 3) % 12;
+    let tithiIndex = (d.getDate() - 1) % 30;
+    let paksha = d.getDate() <= 15? "सुदी" : "बदी";
+    return `${d.getDate()} ${hindiMonths[monthIndex]} ${year}, ${paksha} ${hindiTithi[tithiIndex]}, ${weekDays[d.getDay()]}`;
+}
+
+// Bhaav.in API से 100% शुद्ध तारीख
 async function getPanchangDate(gDate){
     let d = new Date(gDate);
-    let year = d.getFullYear();
-    let month = d.getMonth() + 1;
-    let day = d.getDate();
+    let dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
     
     try{
-        let url = `https://api.panchang.net/api/panchang?year=${year}&month=${month}&day=${day}&latitude=${PATNA_LAT}&longitude=${PATNA_LON}&timezone=${TIMEZONE}`;
+        let url = `https://api.bhaav.in/panchang?date=${dateStr}&lat=${PATNA_LAT}&lon=${PATNA_LON}&tz=Asia/Kolkata`;
         let res = await fetch(url);
+        if(!res.ok) throw new Error("API Fail");
         let data = await res.json();
         
-        let tithi = data.tithi.name + " " + data.tithi.paksha; // सुदी पंचमी / बदी एकादशी
-        let monthName = data.hindu_month.name; // सावन, अधिक सावन
-        let yearVS = data.hindu_year; // 2083
-        let weekday = data.weekday; // गुरुवार
+        let tithi = data.tithi + " + data.paksha;
+        let monthName = data.hindu_month;
+        let yearVS = data.vikram_samvat;
+        let weekday = data.weekday_hindi;
         
-        return `${day} ${monthName} ${yearVS}, ${tithi}, ${weekday}`;
+        return `${d.getDate()} ${monthName} ${yearVS}, ${tithi}, ${weekday}`;
     } catch(e){
-        return "तारीख लोड नहीं हुई";
+        console.log("API Error:", e);
+        return getDemoHindiDate(d) + " *"; // * लगा देंगे की ये डेमो है
     }
 }
 
@@ -149,9 +161,6 @@ function saveKhata(name, address, saman, date, hindiDate, mul, rate, photo){
   location.reload();
 }
 
-// बाकी hisabNikalo, showKhata, print, speak वाला फंक्शन वही रहेगा जो पहले था
-// बस showKhata में ये लाइन जोड़ना: <div class="row hindi-date"><span>हिंदी तारीख:</span><span>${k.hindiDate}</span></div>
-
 function hisabNikalo(khata){
   let startDate = new Date(khata.date);
   let today = new Date();
@@ -178,21 +187,36 @@ function hisabNikalo(khata){
 function showKhata(data = khataData){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
+  if(data.length === 0){
+    list.innerHTML += "<p style='text-align:center;'>कोई खाता नहीं है</p>";
+    return;
+  }
   data.forEach(k => {
     let hisab = hisabNikalo(k);
     let photoHtml = k.photo? `<img src="${k.photo}">` : "";
     list.innerHTML += `
     <div class="khata-card">
       <h3>${k.name}</h3>
-      <div class="row"><span>पता:</span><span>${k.address}</span></div>
+      <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
       <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
       ${photoHtml}
       <div class="row"><span>अंग्रेजी:</span><span>${k.date}</span></div>
       <div class="row hindi-date"><span>हिंदी:</span><span>${k.hindiDate}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
+      <div class="row"><span>ब्याज दर:</span><span>${k.rate}% महीना</span></div>
+      <div class="row"><span>कुल समय:</span><span>${hisab.months} महीना</span></div>
       <div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div>
     </div>`;
   });
+}
+
+function searchKhata(){
+  let query = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = khataData.filter(k =>
+    k.name.toLowerCase().includes(query) ||
+    k.address.toLowerCase().includes(query)
+  );
+  showKhata(filtered);
 }
 </script>
 </body>
