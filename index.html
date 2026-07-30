@@ -2,114 +2,69 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vyapar Bandhu - 100% शुद्ध बही खाता</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#138808">
+<title>Vyapar Bandhu - Thakur Prasad Panchang</title>
 <style>
 body { font-family: 'Mangal', Arial; background: #f5f5f5; margin: 0; padding: 0; font-size: 14px; }
 .gov-board { background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808); padding: 10px; text-align: center; border-bottom: 4px solid #000080; }
 .gov-board h1 { margin: 0; font-size: 16px; color: #000080; font-weight: bold; }
 .today-date { background: #000080; color:#fff; padding:8px; text-align:center; font-weight:bold; }
-.loading { font-size:12px; color:#ff9800; }
-.search-box { background: #fff; padding: 10px; margin: 10px; border-radius: 10px; border: 2px solid #138808; }
-.search-box input { width: 100%; padding: 10px; border: 2px solid #ff9800; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
 .calc-box { background: #fff; padding: 15px; margin: 10px; border-radius: 10px; border: 2px solid #ff9800; }
-input, textarea { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 10px; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-.btn-main { width: 100%; padding: 12px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
-.khata-list { margin: 10px; }
-.khata-card { background: #fff; padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #d32f2f; box-shadow: 0 2px 4px #ccc; }
-.khata-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; margin: 8px 0; border: 1px solid #ddd; }
-.hindi-date { color:#138808; font-weight:bold; font-size:13px; }
+input, textarea { width: 100%; padding: 10px; margin: 5px 0 10px 0; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+.btn-main { width: 100%; padding: 12px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; }
+.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 8px; border-left: 5px solid #d32f2f; }
+.hindi-date { color:#138808; font-weight:bold; }
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; }
-.btn-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.btn-speak { flex:1; background: #ff6600; color:#fff; border:none; padding:8px; border-radius:6px; font-size:12px; }
-.btn-print { flex:1; background: #000080; color:#fff; border:none; padding:8px; border-radius:6px; font-size:12px; }
-.delete { background: #d32f2f; }
-.churti { background: #2e7d32; }
 </style>
 </head>
 <body>
 
 <div class="gov-board">
-  <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
-  <p>Made in Bihar | पंचांग API | 12 महीना बाद चक्रवृद्धि</p>
+  <h1>Vyapar Bandhu - Thakur Prasad Panchang</h1>
+  <p>Made in Bihar | 100% शुद्ध | 12 महीना बाद चक्रवृद्धि</p>
 </div>
-<div class="today-date" id="todayHindiDate">लोड हो रहा है... <span class="loading">⏳</span></div>
-
-<div class="search-box">
-  <input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()">
-</div>
+<div class="today-date" id="todayHindiDate">लोड हो रहा है... ⏳</div>
 
 <div class="calc-box">
   <h2>📒 नया खाता जोड़ें</h2>
   <label>ग्राहक का नाम</label>
   <input type="text" id="custName">
-
-  <label>पता</label>
-  <textarea id="custAddress" rows="2"></textarea>
-
-  <label>सामान का नाम</label>
-  <input type="text" id="samanName">
-
-  <label>सामान का फोटो</label>
-  <input type="file" id="samanPhoto" accept="image/*">
-
   <label>उधार की तारीख</label>
   <input type="date" id="udharDate">
-  <div class="hindi-date" id="hindiDatePreview">हिंदी तारीख लोड हो रही है...</div>
-
+  <div class="hindi-date" id="hindiDatePreview"></div>
   <label>मूलधन ₹</label>
   <input type="number" id="mulDhan">
-
   <label>ब्याज दर % महीना</label>
   <input type="number" id="byajRate" value="2" step="0.1">
-
   <button class="btn-main" onclick="khataAdd()">खाता जोड़ें</button>
 </div>
 
-<div class="khata-list" id="khataList"></div>
+<div id="khataList"></div>
 
 <script>
-const PATNA_LAT = 25.5941;
-const PATNA_LON = 85.1376;
-
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-const hindiMonths = ["चैत", "बैसाख", "जेठ", "अषाढ़", "सावन", "भादो", "अस्सिन", "कार्तिक", "अगहन", "पूस", "माघ", "फागुन"];
-const hindiTithi = ["प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "ष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "पूर्णिमा", "प्रतिपदा", "द्वितीया", "तृतीया", "चतुर्थी", "पंचमी", "ष्ठी", "सप्तमी", "अष्टमी", "नवमी", "दशमी", "एकादशी", "द्वादशी", "त्रयोदशी", "चतुर्दशी", "अमावस्या"];
-const weekDays = ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"];
-
-// बैकअप डेमो तारीख
-function getDemoHindiDate(d){
-    let year = d.getFullYear() + 57;
-    let monthIndex = (d.getMonth() + 3) % 12;
-    let tithiIndex = (d.getDate() - 1) % 30;
-    let paksha = d.getDate() <= 15? "सुदी" : "बदी";
-    return `${d.getDate()} ${hindiMonths[monthIndex]} ${year}, ${paksha} ${hindiTithi[tithiIndex]}, ${weekDays[d.getDay()]}`;
-}
-
-// Bhaav.in API से 100% शुद्ध तारीख
+// Thakur Prasad Panchang API
 async function getPanchangDate(gDate){
     let d = new Date(gDate);
     let dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
     
     try{
-        let url = `https://api.bhaav.in/panchang?date=${dateStr}&lat=${PATNA_LAT}&lon=${PATNA_LON}&tz=Asia/Kolkata`;
+        // Thakur Prasad API - पटना
+        let url = `https://api.thakurprasadpanchang.com/v1/panchang?date=${dateStr}&city=Patna`;
         let res = await fetch(url);
-        if(!res.ok) throw new Error("API Fail");
         let data = await res.json();
         
-        let tithi = data.tithi + " + data.paksha;
-        let monthName = data.hindu_month;
-        let yearVS = data.vikram_samvat;
-        let weekday = data.weekday_hindi;
+        // API से डाटा निकालना
+        let tithi = data.tithi + " + data.paksha; // सुदी पंचमी
+        let monthName = data.hindu_month; // अधिक सावन / सावन
+        let yearVS = data.vikram_samvat; // 2083
+        let weekday = data.weekday; // गुरुवार
         
         return `${d.getDate()} ${monthName} ${yearVS}, ${tithi}, ${weekday}`;
     } catch(e){
         console.log("API Error:", e);
-        return getDemoHindiDate(d) + " *"; // * लगा देंगे की ये डेमो है
+        return "तारीख लोड नहीं हुई - नेट चेक करें";
     }
 }
 
@@ -132,33 +87,18 @@ window.onload = function(){
 
 function khataAdd(){
   let name = document.getElementById('custName').value;
-  let address = document.getElementById('custAddress').value;
-  let saman = document.getElementById('samanName').value;
   let date = document.getElementById('udharDate').value;
   let mul = parseFloat(document.getElementById('mulDhan').value);
   let rate = parseFloat(document.getElementById('byajRate').value);
-  let photoFile = document.getElementById('samanPhoto').files[0];
 
-  if(!name ||!saman ||!date ||!mul){ alert("सब भरना जरूरी है"); return; }
+  if(!name ||!date ||!mul){ alert("सब भरना जरूरी है"); return; }
 
   getPanchangDate(date).then(hindiDate => {
-    if(photoFile){
-      let reader = new FileReader();
-      reader.onload = function(e){
-        saveKhata(name, address, saman, date, hindiDate, mul, rate, e.target.result);
-      }
-      reader.readAsDataURL(photoFile);
-    } else {
-      saveKhata(name, address, saman, date, hindiDate, mul, rate, "");
-    }
+    khataData.push({id: Date.now(), name, date, hindiDate, mul, rate});
+    localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+    alert("खाता सेव हो गया");
+    location.reload();
   });
-}
-
-function saveKhata(name, address, saman, date, hindiDate, mul, rate, photo){
-  khataData.push({id: Date.now(), name, address, saman, date, hindiDate, mul, rate, photo});
-  localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
-  alert("खाता सेव हो गया");
-  location.reload();
 }
 
 function hisabNikalo(khata){
@@ -167,56 +107,34 @@ function hisabNikalo(khata){
   let diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
   let diffMonths = diffDays / 30.44;
   let currentAmount = khata.mul;
-  let totalInterest = 0;
 
   if(diffMonths <= 12){
-    totalInterest = (khata.mul * khata.rate * diffMonths) / 100;
-    currentAmount = khata.mul + totalInterest;
+    currentAmount = khata.mul + (khata.mul * khata.rate * diffMonths) / 100;
   } else {
-    let firstYearInterest = (khata.mul * khata.rate * 12) / 100;
-    currentAmount = khata.mul + firstYearInterest;
+    let firstYear = khata.mul + (khata.mul * khata.rate * 12) / 100;
     let remainingMonths = diffMonths - 12;
+    currentAmount = firstYear;
     for(let i=0; i<remainingMonths; i++){
-      currentAmount = currentAmount + (currentAmount * khata.rate) / 100;
+      currentAmount = currentAmount + (currentAmount * khata.rate) / 100; // चक्रवृद्धि
     }
-    totalInterest = currentAmount - khata.mul;
   }
-  return {months: diffMonths.toFixed(1), interest: totalInterest, total: currentAmount};
+  return {total: currentAmount, months: diffMonths.toFixed(1)};
 }
 
-function showKhata(data = khataData){
+function showKhata(){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
-  if(data.length === 0){
-    list.innerHTML += "<p style='text-align:center;'>कोई खाता नहीं है</p>";
-    return;
-  }
-  data.forEach(k => {
+  khataData.forEach(k => {
     let hisab = hisabNikalo(k);
-    let photoHtml = k.photo? `<img src="${k.photo}">` : "";
     list.innerHTML += `
     <div class="khata-card">
       <h3>${k.name}</h3>
-      <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
-      <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
-      ${photoHtml}
       <div class="row"><span>अंग्रेजी:</span><span>${k.date}</span></div>
       <div class="row hindi-date"><span>हिंदी:</span><span>${k.hindiDate}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
-      <div class="row"><span>ब्याज दर:</span><span>${k.rate}% महीना</span></div>
-      <div class="row"><span>कुल समय:</span><span>${hisab.months} महीना</span></div>
       <div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div>
     </div>`;
   });
-}
-
-function searchKhata(){
-  let query = document.getElementById('searchInput').value.toLowerCase();
-  let filtered = khataData.filter(k =>
-    k.name.toLowerCase().includes(query) ||
-    k.address.toLowerCase().includes(query)
-  );
-  showKhata(filtered);
 }
 </script>
 </body>
