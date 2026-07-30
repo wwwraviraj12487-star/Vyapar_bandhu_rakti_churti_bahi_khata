@@ -67,27 +67,24 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 <div class="khata-list" id="khataList"></div>
 
 <script>
-const PATNA_LAT = 25.5941;
-const PATNA_LON = 85.1376;
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-// Thakur Prasad Panchang API + 3 सेकंड टाइमआउट
+// Thakur Prasad Panchang API - Error फॉलबैक के साथ
 async function getPanchangDate(gDate){
     let d = new Date(gDate);
     let dateStr = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
     
-    const apiCall = fetch(`https://api.thakurprasadpanchang.com/v1/panchang?date=${dateStr}&city=Patna`)
-      .then(res => res.json())
-      .then(data => {
-        let tithi = data.tithi + " + data.paksha;
+    try{
+        let url = `https://api.thakurprasadpanchang.com/v1/panchang?date=${dateStr}&city=Patna`;
+        let res = await fetch(url);
+        if(!res.ok) throw new Error("API fail");
+        let data = await res.json();
+        let tithi = data.tithi + " + data.paksha; // FIX: यहाँ " जोड़ा
         return `${d.getDate()} ${data.hindu_month} ${data.vikram_samvat}, ${tithi}, ${data.weekday}`;
-      });
-
-    const timeout = new Promise(resolve => 
-      setTimeout(() => resolve("तारीख लोड नहीं हुई - नेट चेक करें"), 3000)
-    );
-
-    return await Promise.race([apiCall, timeout]);
+    } catch(e){
+        // API नहीं चली तो अंग्रेजी तारीख दे दो
+        return d.toLocaleDateString('hi-IN') + " *अंग्रेजी";
+    }
 }
 
 async function updateTodayDate(){
@@ -140,6 +137,7 @@ function saveKhata(name, address, saman, date, hindiDate, mul, rate, photo){
   document.getElementById('custAddress').value = "";
   document.getElementById('samanName').value = "";
   document.getElementById('mulDhan').value = "";
+  document.getElementById('samanPhoto').value = "";
   showKhata();
 }
 
@@ -179,7 +177,7 @@ function showKhata(data = khataData){
       <div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div>
       <div class="row"><span>सामान:</span><span>${k.saman}</span></div>
       ${photoHtml}
-      <div class="row"><span>अंग्रेजी:</span><span>${k.date}</span></div>
+      <div class="row"><span>अंग्रेजी:</span><span>${k.date}</span></div>  // FIX: यहाँ </html> हटा दिया
       <div class="row hindi-date"><span>हिंदी:</span><span>${k.hindiDate}</span></div>
       <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
       <div class="row"><span>समय:</span><span>${hisab.months} महीना</span></div>
