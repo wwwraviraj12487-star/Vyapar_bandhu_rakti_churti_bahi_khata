@@ -12,25 +12,25 @@ body { font-family: 'Mangal', Arial; background: #f0f8ff; margin: 0; padding: 0;
 .search-box input { width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 8px; box-sizing: border-box; }
 .calc-box { background: #fff; padding: 15px; margin: 10px; border-radius: 12px; border: 2px solid #ff9800; }
 .btn-main { width: 100%; padding: 14px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; margin-bottom: 8px; }
-.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; }
+.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; overflow: hidden; /* फोटो के लिए जरूरी */ }
 .khata-card h3 { margin: 0 0 8px 0; color: #000080; }
 
-/* 🔥 AB PAKKA CHHOTA */
+/* 🔥 AB EKDM THUMBNAIL */
 .khata-card img {
-  width: auto;
-  max-width: 180px; /* कार्ड की आधी चौड़ाई */
-  height: 120px; /* फिक्स हाइट */
-  object-fit: cover; /* क्रॉप हो जाएगा लेकिन साफ दिखेगा */
-  border-radius: 6px;
-  margin: 8px 0;
+  width: 90px!important; /* फिक्स 90px */
+  height: 90px!important; /* फिक्स 90px चौकोर */
+  object-fit: cover; /* बीच का हिस्सा क्रॉप */
+  border-radius: 8px;
   border: 2px solid #138808;
-  float: right; /* दाहिने साइड में लग जाएगा */
+  float: right; /* दाहिने कोने में */
   margin-left: 10px;
+  margin-bottom: 5px;
+  cursor: pointer;
 }
 
-.row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; }
+.row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; clear: both; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; border-bottom: none; }
-.danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; clear: both; /* फोटो के नीचे आ जाए */ }
+.danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; clear: both; }
 .btn-small { padding: 7px 8px; font-size: 11px; border: none; border-radius: 6px; margin-right: 4px; font-weight: bold; color:#fff; }
 .btn-speak { background: #ff9800; }
 .btn-payment { background: #007bff; }
@@ -126,13 +126,13 @@ function showKhata(data = khataData){
   if(data.length === 0){ list.innerHTML += "<p style='text-align:center;'>अभी कोई खाता नहीं है</p>"; return; }
   data.forEach(k => {
     let h = hisabNikalo(k);
-    let photoHtml = k.photo? `<img src="${k.photo}" onclick="window.open('${k.photo}')">` : ""; // क्लिक करने पर बड़ा खुलेगा
+    let photoHtml = k.photo? `<img src="${k.photo}" title="बड़ा देखने के लिए क्लिक करें" onclick="window.open('${k.photo}')">` : "";
     let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
     let locationText = k.location? `<div class="row secret"><span>कहां रखा है:</span><span>${k.location}</span></div>` : "";
     let paymentLog = ""; if(k.paymentHistory && k.paymentHistory.length > 0){ paymentLog = "<div class='payment-log'><b>जमा इतिहास:</b> "; k.paymentHistory.forEach(p => { paymentLog += `₹${p.amount} | `; }) paymentLog += "</div>"; }
     list.innerHTML += `<div class="khata-card">
       <h3>${k.name}</h3>
-      ${photoHtml} <!-- फोटो अब ऊपर आ गया -->
+      ${photoHtml}
       <div class="row"><span>सामान:</span><span>${k.saman}${gramText}</span></div>
       ${locationText}
       <div class="row"><span>समय हुआ:</span><span>${h.months} महीना / ${h.days} दिन</span></div>
