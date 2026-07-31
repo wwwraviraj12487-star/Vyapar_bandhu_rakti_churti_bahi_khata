@@ -63,62 +63,59 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <label>मूलधन ₹</label><input type="number" id="mulDhan" placeholder="5000">
   <label>ब्याज दर % महीना</label><input type="number" id="byajRate" value="2" step="0.1">
 
-  <button class="btn-main" onclick="khataAdd()">खाता जोड़ें</button>
-  <button class="btn-main btn-print" onclick="printAll()">📄 पूरा हिसाब प्रिंट करें</button>
-  <button class="btn-main btn-gmail" onclick="sendAllByEmail()">📧 सभी को Gmail भेजें</button>
+  <button class="btn-main" id="btnAdd">खाता जोड़ें</button>
+  <button class="btn-main btn-print" id="btnPrint">📄 पूरा हिसाब प्रिंट करें</button>
+  <button class="btn-main btn-gmail" id="btnGmail">📧 सभी को Gmail भेजें</button>
 </div>
 
 <div class="khata-list" id="khataList"></div>
 
-<script type="module">
-// ========== 1. FIREBASE SETUP - तुम्हारा Config लगा दिया ==========
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBDkN3A8BRKQtVZ1LJ5L3cho3CeNOLdP2M",
-  authDomain: "vyapar-bandhu.firebaseapp.com",
-  projectId: "vyapar-bandhu",
-  storageBucket: "vyapar-bandhu.firebasestorage.app",
-  messagingSenderId: "858480976102",
-  appId: "1:858480976102:web:74033f12e3eadbff00db27",
-  measurementId: "G-EJLHTE7ZK"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-// ========== FIREBASE KHATAM ==========
-
-// ========== 2. GOOGLE KEY - तुम्हारी वाली लगी है ==========
+<script>
+// 🔑 तुम्हारी Google Key यहां सेट है
 const CLIENT_ID = '354482413703-rqism5pdpd3rkgerortbdluu1rjb7gi4.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
 
 let tokenClient;
-let khataData = [];
+let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
+// Google API लोड होते ही
 window.onload = function(){
   document.getElementById('udharDate').valueAsDate = new Date();
   document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
   updateTodayDate();
-  showKhataFromFirebase(); // अब Firebase से डेटा आएगा
+  showKhata();
   initGoogle();
-  gapi.load('client');
+  gapi.load('client', ()=>{}); // Gmail के लिए जरूरी
+
+  // बटन को ID से जोड़ा - यही फिक्स है
+  document.getElementById('btnAdd').onclick = khataAdd;
+  document.getElementById('btnPrint').onclick = printAll;
+  document.getElementById('btnGmail').onclick = sendAllByEmail;
 }
 
 function initGoogle(){
-  tokenClient = google.accounts.oauth2.initTokenClient({client_id: CLIENT_ID, scope: SCOPES, callback: ''});
+  tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: '',
+  });
 }
 
 function getDateString(gDate){
     let d = new Date(gDate);
-    return d.toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+    let options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    return d.toLocaleDateString('hi-IN', options);
 }
-function updateTodayDate(){ document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date()); }
+
+function updateTodayDate(){
+    document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date());
+}
 
 document.getElementById('udharDate').addEventListener('change', function(){
     document.getElementById('datePreview').innerText = "तारीख: " + getDateString(this.value);
 })
 
-async function khataAdd(){
+function khataAdd(){
   let name = document.getElementById('custName').value;
   let email = document.getElementById('custEmail').value;
   let address = document.getElementById('custAddress').value;
@@ -130,62 +127,124 @@ async function khataAdd(){
   let mul = parseFloat(document.getElementById('mulDhan').value);
   let rate = parseFloat(document.getElementById('byajRate').value);
   let photoFile = document.getElementById('samanPhoto').files[0];
+
   if(!name ||!saman ||!date ||!mul){ alert("नाम, सामान, तारीख, मूलधन भरना जरूरी है"); return; }
+
   let engDate = getDateString(date);
+
   if(photoFile){
     let reader = new FileReader();
-    reader.onload = async function(e){ await saveKhataFirebase(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, e.target.result); }
+    reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, e.target.result); }
     reader.readAsDataURL(photoFile);
-  } else { await saveKhataFirebase(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
+  } else { saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
 }
 
-// 🔥 FIREBASE में SAVE
-async function saveKhataFirebase(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo){
-  await addDoc(collection(db, "khata"), {name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo, createdAt: serverTimestamp()});
-  alert("खाता Firebase में सेव हो गया ✅");
+function saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo){
+  khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo});
+  localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+  alert("खाता सेव हो गया ✅");
   document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = "");
-  document.getElementById('udharDate').valueAsDate = new Date(); document.getElementById('byajRate').value = 2;
-}
-
-// 🔥 FIREBASE से LIVE डेटा
-function showKhataFromFirebase(){
-  onSnapshot(collection(db, "khata"), (snapshot) => {
-    khataData = []; snapshot.forEach((doc) => { khataData.push({id: doc.id,...doc.data()}); }); showKhata(khataData);
-  });
+  document.getElementById('udharDate').valueAsDate = new Date();
+  document.getElementById('byajRate').value = 2;
+  document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
+  showKhata();
 }
 
 function hisabNikalo(khata){
-  let diffDays = Math.floor((new Date() - new Date(khata.date)) / (1000 * 60 * 60 * 24));
-  let diffMonths = diffDays / 30.44; let currentAmount = khata.mul;
-  if(diffMonths <= 12){ currentAmount = khata.mul + (khata.mul * khata.rate * diffMonths) / 100; }
-  else { let firstYear = khata.mul + (khata.mul * khata.rate * 12) / 100; currentAmount = firstYear; for(let i=0; i<diffMonths-12; i++){ currentAmount = currentAmount + (currentAmount * khata.rate) / 100; } }
-  let karariStatus = ""; if(khata.karari){ karariStatus = diffDays > parseInt(khata.karari)? "⚠️ करारी खत्म! सामान टूट जाएगा" : `करारी बाकी: ${parseInt(khata.karari) - diffDays} दिन`; }
-  return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus};
+  let startDate = new Date(khata.date);
+  let today = new Date();
+  let diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+  let diffMonths = diffDays / 30.44;
+  let currentAmount = khata.mul;
+
+  if(diffMonths <= 12){
+    currentAmount = khata.mul + (khata.mul * khata.rate * diffMonths) / 100;
+  } else {
+    let firstYear = khata.mul + (khata.mul * khata.rate * 12) / 100;
+    let remainingMonths = diffMonths - 12;
+    currentAmount = firstYear;
+    for(let i=0; i<remainingMonths; i++){
+      currentAmount = currentAmount + (currentAmount * khata.rate) / 100;
+    }
+  }
+
+  let karariStatus = "";
+  if(khata.karari){
+    if(diffDays > parseInt(khata.karari)){ karariStatus = "⚠️ करारी खत्म! सामान टूट जाएगा"; }
+    else { karariStatus = `करारी बाकी: ${parseInt(khata.karari) - diffDays} दिन`; }
+  }
+  return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus};
 }
 
-function bolKeBatao(khata){ let h = hisabNikalo(khata); let text = `${khata.name} जी का हिसाब। सामान है ${khata.saman}। कुल देना है ${Math.round(h.total)} रुपया। ${h.karariStatus}`; let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech); }
+function bolKeBatao(khata){
+  let hisab = hisabNikalo(khata);
+  let text = `${khata.name} जी का हिसाब। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। कुल देना है ${Math.round(hisab.total)} रुपया। ${hisab.karariStatus}`;
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
+}
 
+// Gmail भेजने का फंक्शन - FIXED
 function sendMail(to, subject, body){
-  tokenClient.callback = async (resp) => { const email = ['Content-Type: text/html; charset="UTF-8"','MIME-Version: 1.0','',`to: ${to}`,`subject: ${subject}`,'',body].join('\n'); const base64 = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_'); await gapi.client.gmail.users.messages.send({'userId': 'me','resource': {'raw': base64}}); alert(`${to} को Gmail भेज दिया गया ✅`); };
-  tokenClient.requestAccessToken();
+  tokenClient.callback = async (resp) => {
+    if(resp.error){ alert("Login Failed: " + resp.error); return; }
+    await gapi.client.load('gmail', 'v1'); // ये लाइन add की
+    const email = ['Content-Type: text/html; charset="UTF-8"','MIME-Version: 1.0','',`to: ${to}`,`subject: ${subject}`,'',body].join('\n');
+    const base64EncodedEmail = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_');
+    await gapi.client.gmail.users.messages.send({'userId': 'me','resource': {'raw': base64EncodedEmail}});
+    alert(`${to} को Gmail भेज दिया गया ✅`);
+  };
+  tokenClient.requestAccessToken({prompt: 'consent'}); // Login popup आएगा
 }
-function generateEmailBody(k){ let h = hisabNikalo(k); return `<h2>Vyapar Bandhu - खाता पर्ची</h2><p><b>नाम:</b> ${k.name}</p><p><b>कुल देना:</b> ₹${h.total.toFixed(2)}</p><p>${h.karariStatus}</p>`; }
-function sendOneMail(id){ let k = khataData.find(x => x.id == id); if(!k.email){ alert("पहले ग्राहक का Gmail डालो"); return; } sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k)); }
-function sendAllByEmail(){ if(khataData.length === 0){ alert("कोई खाता नहीं है"); return; } khataData.forEach(k => { if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k)); } }); }
 
-function printOne(id){ let k = khataData.find(x => x.id == id); let h = hisabNikalo(k); let win = window.open('', '', 'height=800,width=500'); win.document.write(`<html><body style="font-family:Mangal;padding:20px;"><h2 style="text-align:center;">${k.name}</h2><p>कुल देना: ₹${h.total.toFixed(2)}</p></body></html>`); win.document.close(); setTimeout(() => { win.print(); }, 250); }
-function printAll(){ let win = window.open('', '', 'height=800,width=500'); let html = "<h2 style='text-align:center;'>पूरा हिसाब</h2>"; khataData.forEach(k => { let h = hisabNikalo(k); html += `<p><b>${k.name}</b> - ₹${h.total.toFixed(2)}</p>`; }); win.document.write(`<html><body style="font-family:Mangal;padding:20px;">${html}</body></html>`); win.document.close(); setTimeout(() => { win.print(); }, 250); }
+function generateEmailBody(k){
+  let hisab = hisabNikalo(k);
+  return `<h2>Vyapar Bandhu - खाता पर्ची</h2><p><b>नाम:</b> ${k.name}</p><p><b>कुल देना:</b> ₹${hisab.total.toFixed(2)}</p><p>${hisab.karariStatus}</p>`;
+}
+
+function sendOneMail(id){
+  let k = khataData.find(x => x.id == id);
+  if(!k.email){ alert("पहले ग्राहक का Gmail डालो"); return; }
+  sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k));
+}
+
+function sendAllByEmail(){
+  if(khataData.length === 0){ alert("कोई खाता नहीं है"); return; }
+  khataData.forEach(k => { if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k)); } });
+}
+
+function printOne(id){
+  let k = khataData.find(x => x.id == id);
+  let hisab = hisabNikalo(k);
+  let printHtml = `<div style="padding:20px;"><h2 style="text-align:center;">${k.name}</h2><p>कुल देना: ₹${hisab.total.toFixed(2)}</p></div>`;
+  let win = window.open('', '', 'height=800,width=500');
+  win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250);
+}
+
+function printAll(){
+  let printHtml = `<div style="padding:20px;"><h2 style="text-align:center;">पूरा हिसाब</h2>`;
+  khataData.forEach(k => { let hisab = hisabNikalo(k); printHtml += `<p><b>${k.name}</b> - ₹${hisab.total.toFixed(2)}</p>`; });
+  printHtml += `</div>`;
+  let win = window.open('', '', 'height=800,width=500');
+  win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250);
+}
 
 function showKhata(data = khataData){
-  let list = document.getElementById('khataList'); list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
+  let list = document.getElementById('khataList');
+  list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
   if(data.length === 0){ list.innerHTML += "<p style='text-align:center;'>अभी कोई खाता नहीं है</p>"; return; }
   data.forEach(k => {
-    let h = hisabNikalo(k); let photo = k.photo? `<img src="${k.photo}">` : ""; let gram = k.gram? ` - ${k.gram} ग्राम` : "";
-    list.innerHTML += `<div class="khata-card"><h3>${k.name}</h3><div class="row"><span>पता:</span><span>${k.address || 'नहीं दिया'}</span></div><div class="row"><span>सामान:</span><span>${k.saman}${gram}</span></div>${photo}<div class="row total"><span>कुल देना:</span><span>₹${h.total.toFixed(2)}</span></div>${h.karariStatus?`<div class="danger">${h.karariStatus}</div>`:''}<div style="margin-top:8px;"><button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id=='${k.id}'))">🔊</button><button class="btn-small btn-print-one" onclick="printOne('${k.id}')">🖨️</button><button class="btn-small btn-mail-one" onclick="sendOneMail('${k.id}')">📧</button></div></div>`;
+    let hisab = hisabNikalo(k);
+    let photoHtml = k.photo? `<img src="${k.photo}">` : "";
+    let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
+    list.innerHTML += `<div class="khata-card"><h3>${k.name}</h3><div class="row"><span>सामान:</span><span>${k.saman}${gramText}</span></div>${photoHtml}<div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div><div style="margin-top:8px;"><button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊</button><button class="btn-small btn-print-one" onclick="printOne(${k.id})">🖨️</button><button class="btn-small btn-mail-one" onclick="sendOneMail(${k.id})">📧</button></div></div>`;
   });
 }
 
-function searchKhata(){ let q = document.getElementById('searchInput').value.toLowerCase(); showKhata(khataData.filter(k => k.name.toLowerCase().includes(q))); }
+function searchKhata(){
+  let query = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = khataData.filter(k => k.name.toLowerCase().includes(query));
+  showKhata(filtered);
+}
 </script>
 </body>
 </html>
