@@ -16,7 +16,7 @@ body { font-family: 'Mangal', Arial; background: #f0f8ff; margin: 0; padding: 0;
 .calc-box h2 { margin-top: 0; color: #000080; text-align: center; }
 label { font-weight: bold; font-size: 14px; color: #333; }
 input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-.btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #138808, #0a5f05); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; margin-bottom: 8px; }
+.btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #138808, #0a5f05); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; margin-bottom: 8px; cursor: pointer; }
 .btn-print { background: linear-gradient(90deg, #000080, #000050); }
 .btn-gmail { background: linear-gradient(90deg, #d32f2f, #a00); }
 .khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; overflow: hidden; }
@@ -25,10 +25,10 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; clear: both; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; border-bottom: none; }
 .danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; margin-top: 5px; clear: both; }
-.btn-small { padding: 8px 8px; font-size: 11px; border: none; border-radius: 6px; margin-right: 4px; font-weight: bold; color:#fff; }
+.btn-small { padding: 8px 8px; font-size: 11px; border: none; border-radius: 6px; margin-right: 4px; font-weight: bold; color:#fff; cursor: pointer; }
 .btn-speak { background: #ff9800; }
-.btn-payment { background: #007bff; } /* 🔥 नया जमा बटन */
-.btn-delete { background: #555; } /* 🔥 नया डिलीट बटन */
+.btn-payment { background: #007bff; }
+.btn-delete { background: #555; }
 .btn-print-one { background: #138808; }
 .btn-mail-one { background: #d32f2f; }
 .secret { color: #d32f2f; font-weight: bold; }
@@ -49,17 +49,17 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
 
 <div class="calc-box">
   <h2>📒 नया खाता जोड़ें</h2>
-  <label>ग्राहक का नाम</label><input type="text" id="custName">
-  <label>ग्राहक का Gmail</label><input type="email" id="custEmail">
-  <label>पता</label><textarea id="custAddress" rows="2"></textarea>
-  <label>सामान का नाम</label><input type="text" id="samanName">
-  <label>सामान कितना ग्राम</label><input type="number" id="samanGram">
-  <label>सामान कहां रखा है</label><input type="text" id="samanLocation">
-  <label>सामान कितने दिन की करारी है</label><input type="number" id="karariDin">
+  <label>ग्राहक का नाम</label><input type="text" id="custName" placeholder="जैसे: राम कुमार">
+  <label>ग्राहक का Gmail</label><input type="email" id="custEmail" placeholder="जैसे: ram@gmail.com">
+  <label>पता</label><textarea id="custAddress" rows="2" placeholder="गांव, थाना, जिला"></textarea>
+  <label>सामान का नाम</label><input type="text" id="samanName" placeholder="जैसे: Payal">
+  <label>सामान कितना ग्राम</label><input type="number" id="samanGram" placeholder="जैसे: 104">
+  <label>सामान कहां रखा है</label><input type="text" id="samanLocation" placeholder="जैसे: तिजोरी में">
+  <label>सामान कितने दिन की करारी है</label><input type="number" id="karariDin" placeholder="जैसे: 90">
   <label>सामान का फोटो</label><input type="file" id="samanPhoto" accept="image/*">
   <label>उधार की तारीख</label><input type="date" id="udharDate">
   <div style="color:#138808; font-weight:bold;" id="datePreview">तारीख: </div>
-  <label>मूलधन ₹</label><input type="number" id="mulDhan">
+  <label>मूलधन ₹</label><input type="number" id="mulDhan" placeholder="5000">
   <label>ब्याज दर % महीना</label><input type="number" id="byajRate" value="2" step="0.1">
 
   <button class="btn-main" id="btnAdd">खाता जोड़ें</button>
@@ -106,7 +106,7 @@ function khataAdd(){
   else { saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
 }
 
-// 🔥 paymentHistory जोड़ दिया
+// paymentHistory जोड़ दिया
 function saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo){
   khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo, paymentHistory: []});
   localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); alert("खाता सेव हो गया ✅");
@@ -115,7 +115,7 @@ function saveKhata(name, email, address, saman, gram, location, karari, date, en
   document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date()); showKhata();
 }
 
-// 🔥 हिसाब में जमा घटा दिया
+// हिसाब + जमा घटाना
 function hisabNikalo(khata){
   let startDate = new Date(khata.date); let today = new Date();
   let diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
@@ -131,7 +131,6 @@ function hisabNikalo(khata){
     interest = currentAmount - khata.mul;
   }
 
-  // 🔥 जमा हुआ पैसा घटाओ
   let totalPaid = 0;
   if(khata.paymentHistory){ khata.paymentHistory.forEach(p => { totalPaid += p.amount; }) }
   currentAmount = currentAmount - totalPaid;
@@ -145,13 +144,14 @@ function hisabNikalo(khata){
   return {total: currentAmount, interest: interest, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus, totalPaid: totalPaid};
 }
 
+// पूरी डिटेल बोलेगा
 function bolKeBatao(khata){
   let hisab = hisabNikalo(khata);
-  let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${hisab.months} महीना हुआ। मूलधन ${khata.mul} रुपया। ब्याज ${Math.round(hisab.interest)} रुपया। जमा किया ${hisab.totalPaid} रुपया। बकाया ${Math.round(hisab.total)} रुपया। ${hisab.karariStatus}`;
+  let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${hisab.months} महीना हुआ। मूलधन ${khata.mul} रुपया। ब्याज ${Math.round(hisab.interest)} रुपया। जमा ${hisab.totalPaid} रुपया। बकाया ${Math.round(hisab.total)} रुपया। ${hisab.karariStatus}`;
   let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
 }
 
-// 🔥 नया फंक्शन - जमा करने के लिए
+// जमा करने का ऑप्शन
 function addPayment(id){
   let k = khataData.find(x => x.id == id);
   let amount = prompt(`${k.name} ने कितना रुपया जमा किया?`, "");
@@ -162,7 +162,7 @@ function addPayment(id){
   }
 }
 
-// 🔥 नया फंक्शन - डिलीट करने के लिए
+// चुकता करके डिलीट
 function deleteKhata(id){
   if(confirm("पक्का चुकता करके Delete करना है?")){
     khataData = khataData.filter(x => x.id!= id);
@@ -194,7 +194,7 @@ function sendAllByEmail(){ if(khataData.length === 0){ alert("कोई खा�
 function printOne(id){ let k = khataData.find(x => x.id == id); let hisab = hisabNikalo(k); let printHtml = `<div style="padding:20px;"><h2>${k.name}</h2><p>सामान: ${k.saman}</p><p>कुल देना: ₹${hisab.total.toFixed(2)}</p></div>`; let win = window.open('', '', 'height=800,width=500'); win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250); }
 function printAll(){ let printHtml = `<div style="padding:20px;"><h2>पूरा हिसाब</h2>`; khataData.forEach(k => { let hisab = hisabNikalo(k); printHtml += `<p><b>${k.name}</b> - ₹${hisab.total.toFixed(2)}</p>`; }); printHtml += `</div>`; let win = window.open('', '', 'height=800,width=500'); win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250); }
 
-// 🔥 कार्ड में जमा और डिलीट बटन जोड़ दिए
+// सब फीचर वाला कार्ड
 function showKhata(data = khataData){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
@@ -205,7 +205,6 @@ function showKhata(data = khataData){
     let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
     let locationText = k.location? `<div class="row secret"><span>कहां रखा है:</span><span>${k.location}</span></div>` : "";
 
-    // जमा का लॉग दिखाने के लिए
     let paymentLog = "";
     if(k.paymentHistory && k.paymentHistory.length > 0){
       paymentLog = "<div class='payment-log'><b>जमा इतिहास:</b> ";
