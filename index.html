@@ -4,35 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vyapar Bandhu - 100% शुद्ध बही खाता</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js"></script>
 <style>
 body { font-family: 'Mangal', Arial; background: #f0f8ff; margin: 0; padding: 0; font-size: 14px; }
-.gov-board { background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808); padding: 12px; text-align: center; border-bottom: 4px solid #000080; box-shadow: 0 2px 5px #ccc; }
+.gov-board { background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808); padding: 12px; text-align: center; border-bottom: 4px solid #000080; }
 .gov-board h1 { margin: 0; font-size: 18px; color: #000080; font-weight: bold; }
-.gov-board p { margin: 4px 0 0 0; font-size: 12px; color: #000; }
-.today-date { background: #000080; color:#fff; padding:10px; text-align:center; font-weight:bold; font-size:15px; }
+.today-date { background: #000080; color:#fff; padding:10px; text-align:center; font-weight:bold; }
 .search-box { background: #fff; padding: 12px; margin: 10px; border-radius: 12px; border: 2px solid #138808; }
-.search-box input { width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 8px; font-size: 15px; box-sizing: border-box; }
-.calc-box { background: #fff; padding: 15px; margin: 10px; border-radius: 12px; border: 2px solid #ff9800; box-shadow: 0 3px 8px #ccc; }
-.calc-box h2 { margin-top: 0; color: #000080; text-align: center; }
-label { font-weight: bold; font-size: 14px; color: #333; }
-input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-.btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #138808, #0a5f05); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
-.khata-card { background: #fff; padding: 12px; margin-bottom: 12px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; }
-.khata-card h3 { margin: 0 0 8px 0; color: #000080; }
-.khata-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; margin: 8px 0; border: 1px solid #ddd; }
+.search-box input { width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 8px; box-sizing: border-box; }
+.calc-box { background: #fff; padding: 15px; margin: 10px; border-radius: 12px; border: 2px solid #ff9800; }
+.btn-main { width: 100%; padding: 14px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; margin-bottom: 8px; }
+.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; }
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; border-bottom: none; }
-.danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; margin-top: 5px; }
-.btn-small { padding: 7px 8px; font-size: 11px; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px; font-weight: bold; color:#fff; }
+.danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; }
+.btn-small { padding: 7px 8px; font-size: 11px; border: none; border-radius: 6px; margin-right: 4px; font-weight: bold; color:#fff; }
 .btn-speak { background: #ff9800; }
-.btn-print-one { background: #138808; }
-.btn-mail-one { background: #d32f2f; }
 .btn-payment { background: #007bff; }
 .btn-delete { background: #555; }
+.btn-print-one { background: #138808; }
 .payment-log { background:#e8f5e9; padding:5px; border-radius:5px; margin-top:5px; font-size:12px; }
 .secret { color: #d32f2f; font-weight: bold; }
+input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px solid #138808; border-radius: 6px; box-sizing: border-box; }
 </style>
 </head>
 <body>
@@ -41,80 +33,81 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
   <p>Made in Bihar | 12 महीना बाद चक्रवृद्धि</p>
 </div>
-<div class="today-date" id="todayDate">लोड हो रहा है... ⏳</div>
+<div class="today-date" id="todayDate">आज: </div>
 
-<div class="search-box no-print">
+<div class="search-box">
   <input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()">
 </div>
 
-<div class="calc-box no-print">
+<div class="calc-box">
   <h2>📒 नया खाता जोड़ें</h2>
-  <label>ग्राहक का नाम</label><input type="text" id="custName" placeholder="जैसे: राम कुमार">
-  <label>ग्राहक का Gmail</label><input type="email" id="custEmail" placeholder="जैसे: ram@gmail.com">
-  <label>पता</label><textarea id="custAddress" rows="2" placeholder="गांव, थाना, जिला"></textarea>
-  <label>सामान का नाम</label><input type="text" id="samanName" placeholder="जैसे: Payal">
-  <label>सामान कितना ग्राम</label><input type="number" id="samanGram" placeholder="जैसे: 104">
-  <label>सामान कहां रखा है</label><input type="text" id="samanLocation" placeholder="जैसे: अनिल मामा के पास तिजोरी में">
-  <label>सामान कितने दिन की करारी है</label><input type="number" id="karariDin" placeholder="जैसे: 90 दिन">
+  <label>ग्राहक का नाम</label><input type="text" id="custName">
+  <label>ग्राहक का Gmail</label><input type="email" id="custEmail">
+  <label>पता</label><textarea id="custAddress" rows="2"></textarea>
+  <label>सामान का नाम</label><input type="text" id="samanName">
+  <label>सामान कितना ग्राम</label><input type="number" id="samanGram">
+  <label>सामान कहां रखा है</label><input type="text" id="samanLocation">
+  <label>सामान कितने दिन की करारी है</label><input type="number" id="karariDin">
   <label>सामान का फोटो</label><input type="file" id="samanPhoto" accept="image/*">
   <label>उधार की तारीख</label><input type="date" id="udharDate">
-  <div style="color:#138808; font-weight:bold;" id="datePreview">तारीख: </div>
-  <label>मूलधन ₹</label><input type="number" id="mulDhan" placeholder="5000">
+  <label>मूलधन ₹</label><input type="number" id="mulDhan">
   <label>ब्याज दर % महीना</label><input type="number" id="byajRate" value="2" step="0.1">
-
   <button class="btn-main" id="btnAdd">खाता जोड़ें</button>
   <button class="btn-main" style="background:#000080" id="btnPrint">📄 पूरा हिसाब प्रिंट करें</button>
-  <button class="btn-main" style="background:#d32f2f" id="btnGmail">📧 सभी को Gmail भेजें</button>
 </div>
 
-<div class="khata-list" id="khataList"></div>
+<div id="khataList"></div>
 
 <script>
-const CLIENT_ID = '354482413703-rqism5pdpd3rkgerortbdluu1rjb7gi4.apps.googleusercontent.com';
-const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
-let tokenClient;
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
 window.onload = function(){
   document.getElementById('udharDate').valueAsDate = new Date();
-  document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
   updateTodayDate();
-  showKhata();
-  initGoogle();
-  gapi.load('client', ()=>{});
+  showKhata(); // सीधा चल जाएगा, Google का इंतजार नहीं
+
   document.getElementById('btnAdd').onclick = khataAdd;
   document.getElementById('btnPrint').onclick = printAll;
-  document.getElementById('btnGmail').onclick = sendAllByEmail;
 }
 
-function initGoogle(){ tokenClient = google.accounts.oauth2.initTokenClient({client_id: CLIENT_ID, scope: SCOPES, callback: ''}); }
-function getDateString(gDate){ return new Date(gDate).toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }); }
+function getDateString(gDate){ return new Date(gDate).toLocaleDateString('hi-IN'); }
 function updateTodayDate(){ document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date()); }
-document.getElementById('udharDate').addEventListener('change', function(){ document.getElementById('datePreview').innerText = "तारीख: " + getDateString(this.value); })
 
 function khataAdd(){
-  let name = document.getElementById('custName').value; let email = document.getElementById('custEmail').value; let address = document.getElementById('custAddress').value;
-  let saman = document.getElementById('samanName').value; let gram = document.getElementById('samanGram').value; let location = document.getElementById('samanLocation').value;
-  let karari = document.getElementById('karariDin').value; let date = document.getElementById('udharDate').value; let mul = parseFloat(document.getElementById('mulDhan').value);
-  let rate = parseFloat(document.getElementById('byajRate').value); let photoFile = document.getElementById('samanPhoto').files[0];
+  let name = document.getElementById('custName').value;
+  let email = document.getElementById('custEmail').value;
+  let address = document.getElementById('custAddress').value;
+  let saman = document.getElementById('samanName').value;
+  let gram = document.getElementById('samanGram').value;
+  let location = document.getElementById('samanLocation').value;
+  let karari = document.getElementById('karariDin').value;
+  let date = document.getElementById('udharDate').value;
+  let mul = parseFloat(document.getElementById('mulDhan').value);
+  let rate = parseFloat(document.getElementById('byajRate').value);
+  let photoFile = document.getElementById('samanPhoto').files[0];
+
   if(!name ||!saman ||!date ||!mul){ alert("नाम, सामान, तारीख, मूलधन भरना जरूरी है"); return; }
-  let engDate = getDateString(date);
-  if(photoFile){ let reader = new FileReader(); reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, e.target.result); } reader.readAsDataURL(photoFile); }
-  else { saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
+
+  if(photoFile){
+    let reader = new FileReader();
+    reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, e.target.result); }
+    reader.readAsDataURL(photoFile);
+  } else { saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, ""); }
 }
 
-function saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo){
-  khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo, paymentHistory: []});
-  localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); alert("खाता सेव हो गया ✅");
-  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = ""); document.getElementById('udharDate').valueAsDate = new Date(); showKhata();
+function saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, photo){
+  khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, mul, rate, photo, paymentHistory: []});
+  localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+  alert("खाता सेव हो गया ✅");
+  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = "");
+  document.getElementById('udharDate').valueAsDate = new Date();
+  showKhata();
 }
 
-// पूरा हिसाब + ब्याज + महीना निकालने वाला
 function hisabNikalo(khata){
   let diffDays = Math.floor((new Date() - new Date(khata.date)) / (1000 * 60 * 60 * 24));
   let diffMonths = diffDays / 30.44; let currentAmount = khata.mul; let totalInterest = 0;
 
-  // 12 महीने तक साधारण, बाद में चक्रवृद्धि
   if(diffMonths <= 12){
     totalInterest = (khata.mul * khata.rate * diffMonths) / 100;
     currentAmount = khata.mul + totalInterest;
@@ -137,14 +130,12 @@ function hisabNikalo(khata){
   return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus, totalPaid: totalPaid, interest: totalInterest};
 }
 
-// पूरा बोलने वाला
 function bolKeBatao(khata){
   let h = hisabNikalo(khata);
-  let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${h.months} महीना ${h.days} दिन हुआ। मूलधन ${khata.mul} रुपया। ब्याज हुआ ${Math.round(h.interest)} रुपया। आपने जमा किया ${h.totalPaid} रुपया। कुल बकाया ${Math.round(h.total)} रुपया। ${h.karariStatus}`;
-  let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
+  let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${h.months} महीना हुआ। मूलधन ${khata.mul} रुपया। ब्याज ${Math.round(h.interest)} रुपया। बकाया ${Math.round(h.total)} रुपया।`;
+  let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; window.speechSynthesis.speak(speech);
 }
 
-// ब्याज जमा करने का
 function addPayment(id){
   let k = khataData.find(x => x.id == id);
   let amount = prompt(`${k.name} ने कितना रुपया जमा किया?`, "");
@@ -152,29 +143,24 @@ function addPayment(id){
     k.paymentHistory.push({date: getDateString(new Date()), amount: parseFloat(amount)});
     localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
     showKhata();
-    alert(`₹${amount} जमा हो गया`);
   }
 }
 
-// चुकता/डिलीट करने का
 function deleteKhata(id){
   if(confirm("पक्का चुकता करके Delete करना है?")){
     khataData = khataData.filter(x => x.id!= id);
     localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
     showKhata();
-    alert("खाता चुकता कर दिया गया");
   }
 }
 
-function sendMail(to, subject, body){ tokenClient.callback = async (resp) => { await gapi.client.load('gmail', 'v1'); const email = [`to: ${to}`,`subject: ${subject}`,'',body].join('\n'); const base64 = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_'); await gapi.client.gmail.users.messages.send({'userId': 'me','resource': {'raw': base64}}); alert(`${to} को Gmail भेज दिया`); }; tokenClient.requestAccessToken({prompt: 'consent'}); }
-function sendOneMail(id){ let k = khataData.find(x => x.id == id); if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name}`, `बकाया: ₹${hisabNikalo(k).total.toFixed(2)}`) } }
-function sendAllByEmail(){ khataData.forEach(k => { if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name}`, `बकाया: ₹${hisabNikalo(k).total.toFixed(2)}`) } }) }
-function printAll(){ alert("Print का ऑप्शन") }
+function printAll(){ window.print(); }
 
 function showKhata(data = khataData){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
   if(data.length === 0){ list.innerHTML += "<p style='text-align:center;'>अभी कोई खाता नहीं है</p>"; return; }
+
   data.forEach(k => {
     let h = hisabNikalo(k);
     let photoHtml = k.photo? `<img src="${k.photo}">` : "";
@@ -184,7 +170,7 @@ function showKhata(data = khataData){
     let paymentLog = "";
     if(k.paymentHistory && k.paymentHistory.length > 0){
       paymentLog = "<div class='payment-log'><b>जमा इतिहास:</b> ";
-      k.paymentHistory.forEach(p => { paymentLog += `₹${p.amount} on ${p.date} | `; })
+      k.paymentHistory.forEach(p => { paymentLog += `₹${p.amount} | `; })
       paymentLog += "</div>";
     }
 
@@ -208,7 +194,11 @@ function showKhata(data = khataData){
     </div>`;
   });
 }
-function searchKhata(){ let q = document.getElementById('searchInput').value.toLowerCase(); showKhata(khataData.filter(k => k.name.toLowerCase().includes(q))); }
+
+function searchKhata(){
+  let q = document.getElementById('searchInput').value.toLowerCase();
+  showKhata(khataData.filter(k => k.name.toLowerCase().includes(q)));
+}
 </script>
 </body>
 </html>
