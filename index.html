@@ -18,21 +18,20 @@ body { font-family: 'Mangal', Arial; background: #f0f8ff; margin: 0; padding: 0;
 .calc-box h2 { margin-top: 0; color: #000080; text-align: center; }
 label { font-weight: bold; font-size: 14px; color: #333; }
 input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px solid #138808; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-.btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #138808, #0a5f05); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 8px; box-shadow: 0 2px 4px #999; }
-.btn-main:active { transform: scale(0.98); }
-.btn-print { background: linear-gradient(90deg, #000080, #000050); }
-.btn-gmail { background: linear-gradient(90deg, #d32f2f, #a00); }
-.khata-list { margin: 10px; }
+.btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #138808, #0a5f05); color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
 .khata-card { background: #fff; padding: 12px; margin-bottom: 12px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; }
 .khata-card h3 { margin: 0 0 8px 0; color: #000080; }
 .khata-card img { width: 100%; max-height: 150px; object-fit: cover; border-radius: 6px; margin: 8px 0; border: 1px solid #ddd; }
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; border-bottom: none; }
 .danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; margin-top: 5px; }
-.btn-small { padding: 8px 12px; font-size: 12px; border: none; border-radius: 6px; cursor: pointer; margin-right: 5px; font-weight: bold; }
-.btn-speak { background: #ff9800; color: #fff; }
-.btn-print-one { background: #138808; color: #fff; }
-.btn-mail-one { background: #d32f2f; color: #fff; }
+.btn-small { padding: 7px 8px; font-size: 11px; border: none; border-radius: 6px; cursor: pointer; margin-right: 4px; font-weight: bold; color:#fff; }
+.btn-speak { background: #ff9800; }
+.btn-print-one { background: #138808; }
+.btn-mail-one { background: #d32f2f; }
+.btn-payment { background: #007bff; }
+.btn-delete { background: #555; }
+.payment-log { background:#e8f5e9; padding:5px; border-radius:5px; margin-top:5px; font-size:12px; }
 .secret { color: #d32f2f; font-weight: bold; }
 </style>
 </head>
@@ -64,187 +63,152 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <label>ब्याज दर % महीना</label><input type="number" id="byajRate" value="2" step="0.1">
 
   <button class="btn-main" id="btnAdd">खाता जोड़ें</button>
-  <button class="btn-main btn-print" id="btnPrint">📄 पूरा हिसाब प्रिंट करें</button>
-  <button class="btn-main btn-gmail" id="btnGmail">📧 सभी को Gmail भेजें</button>
+  <button class="btn-main" style="background:#000080" id="btnPrint">📄 पूरा हिसाब प्रिंट करें</button>
+  <button class="btn-main" style="background:#d32f2f" id="btnGmail">📧 सभी को Gmail भेजें</button>
 </div>
 
 <div class="khata-list" id="khataList"></div>
 
 <script>
-// 🔑 तुम्हारी Google Key यहां सेट है
 const CLIENT_ID = '354482413703-rqism5pdpd3rkgerortbdluu1rjb7gi4.apps.googleusercontent.com';
 const SCOPES = 'https://www.googleapis.com/auth/gmail.send';
-
 let tokenClient;
 let khataData = JSON.parse(localStorage.getItem('vyaparKhata')) || [];
 
-// Google API लोड होते ही
 window.onload = function(){
   document.getElementById('udharDate').valueAsDate = new Date();
   document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
   updateTodayDate();
   showKhata();
   initGoogle();
-  gapi.load('client', ()=>{}); // Gmail के लिए जरूरी
-
-  // बटन को ID से जोड़ा - यही फिक्स है
+  gapi.load('client', ()=>{});
   document.getElementById('btnAdd').onclick = khataAdd;
   document.getElementById('btnPrint').onclick = printAll;
   document.getElementById('btnGmail').onclick = sendAllByEmail;
 }
 
-function initGoogle(){
-  tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: '',
-  });
-}
-
-function getDateString(gDate){
-    let d = new Date(gDate);
-    let options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-    return d.toLocaleDateString('hi-IN', options);
-}
-
-function updateTodayDate(){
-    document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date());
-}
-
-document.getElementById('udharDate').addEventListener('change', function(){
-    document.getElementById('datePreview').innerText = "तारीख: " + getDateString(this.value);
-})
+function initGoogle(){ tokenClient = google.accounts.oauth2.initTokenClient({client_id: CLIENT_ID, scope: SCOPES, callback: ''}); }
+function getDateString(gDate){ return new Date(gDate).toLocaleDateString('hi-IN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }); }
+function updateTodayDate(){ document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date()); }
+document.getElementById('udharDate').addEventListener('change', function(){ document.getElementById('datePreview').innerText = "तारीख: " + getDateString(this.value); })
 
 function khataAdd(){
-  let name = document.getElementById('custName').value;
-  let email = document.getElementById('custEmail').value;
-  let address = document.getElementById('custAddress').value;
-  let saman = document.getElementById('samanName').value;
-  let gram = document.getElementById('samanGram').value;
-  let location = document.getElementById('samanLocation').value;
-  let karari = document.getElementById('karariDin').value;
-  let date = document.getElementById('udharDate').value;
-  let mul = parseFloat(document.getElementById('mulDhan').value);
-  let rate = parseFloat(document.getElementById('byajRate').value);
-  let photoFile = document.getElementById('samanPhoto').files[0];
-
+  let name = document.getElementById('custName').value; let email = document.getElementById('custEmail').value; let address = document.getElementById('custAddress').value;
+  let saman = document.getElementById('samanName').value; let gram = document.getElementById('samanGram').value; let location = document.getElementById('samanLocation').value;
+  let karari = document.getElementById('karariDin').value; let date = document.getElementById('udharDate').value; let mul = parseFloat(document.getElementById('mulDhan').value);
+  let rate = parseFloat(document.getElementById('byajRate').value); let photoFile = document.getElementById('samanPhoto').files[0];
   if(!name ||!saman ||!date ||!mul){ alert("नाम, सामान, तारीख, मूलधन भरना जरूरी है"); return; }
-
   let engDate = getDateString(date);
-
-  if(photoFile){
-    let reader = new FileReader();
-    reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, e.target.result); }
-    reader.readAsDataURL(photoFile);
-  } else { saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
+  if(photoFile){ let reader = new FileReader(); reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, e.target.result); } reader.readAsDataURL(photoFile); }
+  else { saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, ""); }
 }
 
 function saveKhata(name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo){
-  khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo});
-  localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
-  alert("खाता सेव हो गया ✅");
-  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = "");
-  document.getElementById('udharDate').valueAsDate = new Date();
-  document.getElementById('byajRate').value = 2;
-  document.getElementById('datePreview').innerText = "तारीख: " + getDateString(new Date());
-  showKhata();
+  khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, engDate, mul, rate, photo, paymentHistory: []});
+  localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); alert("खाता सेव हो गया ✅");
+  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = ""); document.getElementById('udharDate').valueAsDate = new Date(); showKhata();
 }
 
+// पूरा हिसाब + ब्याज + महीना निकालने वाला
 function hisabNikalo(khata){
-  let startDate = new Date(khata.date);
-  let today = new Date();
-  let diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
-  let diffMonths = diffDays / 30.44;
-  let currentAmount = khata.mul;
+  let diffDays = Math.floor((new Date() - new Date(khata.date)) / (1000 * 60 * 60 * 24));
+  let diffMonths = diffDays / 30.44; let currentAmount = khata.mul; let totalInterest = 0;
 
+  // 12 महीने तक साधारण, बाद में चक्रवृद्धि
   if(diffMonths <= 12){
-    currentAmount = khata.mul + (khata.mul * khata.rate * diffMonths) / 100;
+    totalInterest = (khata.mul * khata.rate * diffMonths) / 100;
+    currentAmount = khata.mul + totalInterest;
   } else {
     let firstYear = khata.mul + (khata.mul * khata.rate * 12) / 100;
     let remainingMonths = diffMonths - 12;
     currentAmount = firstYear;
-    for(let i=0; i<remainingMonths; i++){
-      currentAmount = currentAmount + (currentAmount * khata.rate) / 100;
-    }
+    for(let i=0; i<remainingMonths; i++){ currentAmount = currentAmount + (currentAmount * khata.rate) / 100; }
+    totalInterest = currentAmount - khata.mul;
   }
+
+  let totalPaid = 0; if(khata.paymentHistory){ khata.paymentHistory.forEach(p => { totalPaid += p.amount; }) }
+  currentAmount = currentAmount - totalPaid; if(currentAmount < 0) currentAmount = 0;
 
   let karariStatus = "";
   if(khata.karari){
     if(diffDays > parseInt(khata.karari)){ karariStatus = "⚠️ करारी खत्म! सामान टूट जाएगा"; }
     else { karariStatus = `करारी बाकी: ${parseInt(khata.karari) - diffDays} दिन`; }
   }
-  return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus};
+  return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus, totalPaid: totalPaid, interest: totalInterest};
 }
 
+// पूरा बोलने वाला
 function bolKeBatao(khata){
-  let hisab = hisabNikalo(khata);
-  let text = `${khata.name} जी का हिसाब। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। कुल देना है ${Math.round(hisab.total)} रुपया। ${hisab.karariStatus}`;
-  let speech = new SpeechSynthesisUtterance(text);
-  speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
+  let h = hisabNikalo(khata);
+  let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${h.months} महीना ${h.days} दिन हुआ। मूलधन ${khata.mul} रुपया। ब्याज हुआ ${Math.round(h.interest)} रुपया। आपने जमा किया ${h.totalPaid} रुपया। कुल बकाया ${Math.round(h.total)} रुपया। ${h.karariStatus}`;
+  let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; speech.rate = 0.9; window.speechSynthesis.speak(speech);
 }
 
-// Gmail भेजने का फंक्शन - FIXED
-function sendMail(to, subject, body){
-  tokenClient.callback = async (resp) => {
-    if(resp.error){ alert("Login Failed: " + resp.error); return; }
-    await gapi.client.load('gmail', 'v1'); // ये लाइन add की
-    const email = ['Content-Type: text/html; charset="UTF-8"','MIME-Version: 1.0','',`to: ${to}`,`subject: ${subject}`,'',body].join('\n');
-    const base64EncodedEmail = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_');
-    await gapi.client.gmail.users.messages.send({'userId': 'me','resource': {'raw': base64EncodedEmail}});
-    alert(`${to} को Gmail भेज दिया गया ✅`);
-  };
-  tokenClient.requestAccessToken({prompt: 'consent'}); // Login popup आएगा
-}
-
-function generateEmailBody(k){
-  let hisab = hisabNikalo(k);
-  return `<h2>Vyapar Bandhu - खाता पर्ची</h2><p><b>नाम:</b> ${k.name}</p><p><b>कुल देना:</b> ₹${hisab.total.toFixed(2)}</p><p>${hisab.karariStatus}</p>`;
-}
-
-function sendOneMail(id){
+// ब्याज जमा करने का
+function addPayment(id){
   let k = khataData.find(x => x.id == id);
-  if(!k.email){ alert("पहले ग्राहक का Gmail डालो"); return; }
-  sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k));
+  let amount = prompt(`${k.name} ने कितना रुपया जमा किया?`, "");
+  if(amount &&!isNaN(amount) && amount > 0){
+    k.paymentHistory.push({date: getDateString(new Date()), amount: parseFloat(amount)});
+    localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+    showKhata();
+    alert(`₹${amount} जमा हो गया`);
+  }
 }
 
-function sendAllByEmail(){
-  if(khataData.length === 0){ alert("कोई खाता नहीं है"); return; }
-  khataData.forEach(k => { if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name} का हिसाब`, generateEmailBody(k)); } });
+// चुकता/डिलीट करने का
+function deleteKhata(id){
+  if(confirm("पक्का चुकता करके Delete करना है?")){
+    khataData = khataData.filter(x => x.id!= id);
+    localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+    showKhata();
+    alert("खाता चुकता कर दिया गया");
+  }
 }
 
-function printOne(id){
-  let k = khataData.find(x => x.id == id);
-  let hisab = hisabNikalo(k);
-  let printHtml = `<div style="padding:20px;"><h2 style="text-align:center;">${k.name}</h2><p>कुल देना: ₹${hisab.total.toFixed(2)}</p></div>`;
-  let win = window.open('', '', 'height=800,width=500');
-  win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250);
-}
-
-function printAll(){
-  let printHtml = `<div style="padding:20px;"><h2 style="text-align:center;">पूरा हिसाब</h2>`;
-  khataData.forEach(k => { let hisab = hisabNikalo(k); printHtml += `<p><b>${k.name}</b> - ₹${hisab.total.toFixed(2)}</p>`; });
-  printHtml += `</div>`;
-  let win = window.open('', '', 'height=800,width=500');
-  win.document.write('<html><body>' + printHtml + '</body></html>'); win.document.close(); setTimeout(() => { win.print(); }, 250);
-}
+function sendMail(to, subject, body){ tokenClient.callback = async (resp) => { await gapi.client.load('gmail', 'v1'); const email = [`to: ${to}`,`subject: ${subject}`,'',body].join('\n'); const base64 = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_'); await gapi.client.gmail.users.messages.send({'userId': 'me','resource': {'raw': base64}}); alert(`${to} को Gmail भेज दिया`); }; tokenClient.requestAccessToken({prompt: 'consent'}); }
+function sendOneMail(id){ let k = khataData.find(x => x.id == id); if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name}`, `बकाया: ₹${hisabNikalo(k).total.toFixed(2)}`) } }
+function sendAllByEmail(){ khataData.forEach(k => { if(k.email){ sendMail(k.email, `VyaparBandhu - ${k.name}`, `बकाया: ₹${hisabNikalo(k).total.toFixed(2)}`) } }) }
+function printAll(){ alert("Print का ऑप्शन") }
 
 function showKhata(data = khataData){
   let list = document.getElementById('khataList');
   list.innerHTML = "<h2 style='text-align:center; color:#138808;'>📑 सभी खाते</h2>";
   if(data.length === 0){ list.innerHTML += "<p style='text-align:center;'>अभी कोई खाता नहीं है</p>"; return; }
   data.forEach(k => {
-    let hisab = hisabNikalo(k);
+    let h = hisabNikalo(k);
     let photoHtml = k.photo? `<img src="${k.photo}">` : "";
     let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
-    list.innerHTML += `<div class="khata-card"><h3>${k.name}</h3><div class="row"><span>सामान:</span><span>${k.saman}${gramText}</span></div>${photoHtml}<div class="row total"><span>कुल देना:</span><span>₹${hisab.total.toFixed(2)}</span></div><div style="margin-top:8px;"><button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊</button><button class="btn-small btn-print-one" onclick="printOne(${k.id})">🖨️</button><button class="btn-small btn-mail-one" onclick="sendOneMail(${k.id})">📧</button></div></div>`;
+    let locationText = k.location? `<div class="row secret"><span>कहां रखा है:</span><span>${k.location}</span></div>` : "";
+
+    let paymentLog = "";
+    if(k.paymentHistory && k.paymentHistory.length > 0){
+      paymentLog = "<div class='payment-log'><b>जमा इतिहास:</b> ";
+      k.paymentHistory.forEach(p => { paymentLog += `₹${p.amount} on ${p.date} | `; })
+      paymentLog += "</div>";
+    }
+
+    list.innerHTML += `<div class="khata-card">
+      <h3>${k.name}</h3>
+      <div class="row"><span>सामान:</span><span>${k.saman}${gramText}</span></div>
+      ${locationText}
+      ${photoHtml}
+      <div class="row"><span>समय हुआ:</span><span>${h.months} महीना / ${h.days} दिन</span></div>
+      <div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div>
+      <div class="row"><span>ब्याज हुआ:</span><span>₹${h.interest.toFixed(2)}</span></div>
+      <div class="row"><span>जमा किया:</span><span>₹${h.totalPaid.toFixed(2)}</span></div>
+      <div class="row total"><span>बकाया:</span><span>₹${h.total.toFixed(2)}</span></div>
+      ${paymentLog}
+      ${h.karariStatus?`<div class="danger">${h.karariStatus}</div>`:''}
+      <div style="margin-top:8px;">
+        <button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊 बोलें</button>
+        <button class="btn-small btn-payment" onclick="addPayment(${k.id})">💰 जमा</button>
+        <button class="btn-small btn-delete" onclick="deleteKhata(${k.id})">🗑️ चुकता</button>
+      </div>
+    </div>`;
   });
 }
-
-function searchKhata(){
-  let query = document.getElementById('searchInput').value.toLowerCase();
-  let filtered = khataData.filter(k => k.name.toLowerCase().includes(query));
-  showKhata(filtered);
-}
+function searchKhata(){ let q = document.getElementById('searchInput').value.toLowerCase(); showKhata(khataData.filter(k => k.name.toLowerCase().includes(q))); }
 </script>
 </body>
 </html>
