@@ -12,26 +12,25 @@ body { font-family: 'Mangal', Arial; background: #f0f8ff; margin: 0; padding: 0;
 .search-box input { width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 8px; box-sizing: border-box; }
 .calc-box { background: #fff; padding: 15px; margin: 10px; border-radius: 12px; border: 2px solid #ff9800; }
 .btn-main { width: 100%; padding: 14px; background: #138808; color: #fff; border: none; border-radius: 8px; font-size: 17px; font-weight: bold; margin-bottom: 8px; }
-.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; overflow: hidden; /* फोटो के लिए जरूरी */ }
+.khata-card { background: #fff; padding: 12px; margin: 10px; border-radius: 10px; border-left: 6px solid #d32f2f; box-shadow: 0 3px 6px #bbb; overflow: hidden; }
 .khata-card h3 { margin: 0 0 8px 0; color: #000080; }
 
-/* 🔥 AB EKDM THUMBNAIL */
+/* फोटो एकदम छोटा */
 .khata-card img {
-  width: 90px!important; /* फिक्स 90px */
-  height: 90px!important; /* फिक्स 90px चौकोर */
-  object-fit: cover; /* बीच का हिस्सा क्रॉप */
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
   border-radius: 8px;
   border: 2px solid #138808;
-  float: right; /* दाहिने कोने में */
+  float: right;
   margin-left: 10px;
-  margin-bottom: 5px;
   cursor: pointer;
 }
 
 .row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; border-bottom: 1px dashed #eee; clear: both; }
 .total { font-weight: bold; color: #d32f2f; font-size: 16px; border-bottom: none; }
 .danger { font-weight: bold; color: #fff; background: #d32f2f; padding: 4px; border-radius: 4px; text-align: center; clear: both; }
-.btn-small { padding: 7px 8px; font-size: 11px; border: none; border-radius: 6px; margin-right: 4px; font-weight: bold; color:#fff; }
+.btn-small { padding: 8px 10px; font-size: 12px; border: none; border-radius: 6px; margin-right: 5px; font-weight: bold; color:#fff; }
 .btn-speak { background: #ff9800; }
 .btn-payment { background: #007bff; }
 .btn-delete { background: #555; }
@@ -65,8 +64,10 @@ input, textarea { width: 100%; padding: 10px; margin: 5px 0 12px 0; border: 2px 
   <label>उधार की तारीख</label><input type="date" id="udharDate">
   <label>मूलधन ₹</label><input type="number" id="mulDhan">
   <label>ब्याज दर % महीना</label><input type="number" id="byajRate" value="2" step="0.1">
-  <button class="btn-main" id="btnAdd">खाता जोड़ें</button>
-  <button class="btn-main" style="background:#000080" id="btnPrint">📄 पूरा हिसाब प्रिंट करें</button>
+
+  <!-- 🔥 ONCLICK सीधा लगा दिया -->
+  <button class="btn-main" onclick="khataAdd()">खाता जोड़ें</button>
+  <button class="btn-main" style="background:#000080" onclick="printAll()">📄 पूरा हिसाब प्रिंट करें</button>
 </div>
 
 <div id="khataList"></div>
@@ -78,27 +79,41 @@ window.onload = function(){
   document.getElementById('udharDate').valueAsDate = new Date();
   updateTodayDate();
   showKhata();
-  document.getElementById('btnAdd').onclick = khataAdd;
-  document.getElementById('btnPrint').onclick = printAll;
 }
 
 function getDateString(gDate){ return new Date(gDate).toLocaleDateString('hi-IN'); }
 function updateTodayDate(){ document.getElementById('todayDate').innerText = "आज: " + getDateString(new Date()); }
 
 function khataAdd(){
-  let name = document.getElementById('custName').value; let email = document.getElementById('custEmail').value; let address = document.getElementById('custAddress').value;
-  let saman = document.getElementById('samanName').value; let gram = document.getElementById('samanGram').value; let location = document.getElementById('samanLocation').value;
-  let karari = document.getElementById('karariDin').value; let date = document.getElementById('udharDate').value; let mul = parseFloat(document.getElementById('mulDhan').value);
-  let rate = parseFloat(document.getElementById('byajRate').value); let photoFile = document.getElementById('samanPhoto').files[0];
+  let name = document.getElementById('custName').value;
+  let email = document.getElementById('custEmail').value;
+  let address = document.getElementById('custAddress').value;
+  let saman = document.getElementById('samanName').value;
+  let gram = document.getElementById('samanGram').value;
+  let location = document.getElementById('samanLocation').value;
+  let karari = document.getElementById('karariDin').value;
+  let date = document.getElementById('udharDate').value;
+  let mul = parseFloat(document.getElementById('mulDhan').value);
+  let rate = parseFloat(document.getElementById('byajRate').value);
+  let photoFile = document.getElementById('samanPhoto').files[0];
+
   if(!name ||!saman ||!date ||!mul){ alert("नाम, सामान, तारीख, मूलधन भरना जरूरी है"); return; }
-  if(photoFile){ let reader = new FileReader(); reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, e.target.result); } reader.readAsDataURL(photoFile); }
+
+  if(photoFile){
+    let reader = new FileReader();
+    reader.onload = function(e){ saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, e.target.result); }
+    reader.readAsDataURL(photoFile);
+  }
   else { saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, ""); }
 }
 
 function saveKhata(name, email, address, saman, gram, location, karari, date, mul, rate, photo){
   khataData.push({id: Date.now(), name, email, address, saman, gram, location, karari, date, mul, rate, photo, paymentHistory: []});
-  localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); alert("खाता सेव हो गया ✅");
-  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = ""); document.getElementById('udharDate').valueAsDate = new Date(); showKhata();
+  localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+  alert("खाता सेव हो गया ✅");
+  document.querySelectorAll('.calc-box input,.calc-box textarea').forEach(el => el.value = "");
+  document.getElementById('udharDate').valueAsDate = new Date();
+  showKhata();
 }
 
 function hisabNikalo(khata){
@@ -112,11 +127,30 @@ function hisabNikalo(khata){
   return {total: currentAmount, months: diffMonths.toFixed(1), days: diffDays, karariStatus: karariStatus, totalPaid: totalPaid, interest: totalInterest};
 }
 
-function bolKeBatao(khata){ let h = hisabNikalo(khata); let text = `${khata.name} जी। सामान है ${khata.saman} ${khata.gram? khata.gram + ' ग्राम' : ''}। सामान रखा है ${khata.location || 'पता नहीं'}। ${h.months} महीना हुआ। बकाया ${Math.round(h.total)} रुपया।`; let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; window.speechSynthesis.speak(speech); }
+function bolKeBatao(id){
+  let k = khataData.find(x=>x.id==id);
+  let h = hisabNikalo(k);
+  let text = `${k.name} जी। सामान है ${k.saman} ${k.gram? k.gram + ' ग्राम' : ''}। सामान रखा है ${k.location || 'पता नहीं'}। ${h.months} महीना हुआ। बकाया ${Math.round(h.total)} रुपया।`;
+  let speech = new SpeechSynthesisUtterance(text); speech.lang = 'hi-IN'; window.speechSynthesis.speak(speech);
+}
 
-function addPayment(id){ let k = khataData.find(x => x.id == id); let amount = prompt(`${k.name} ने कितना रुपया जमा किया?`, ""); if(amount &&!isNaN(amount) && amount > 0){ k.paymentHistory.push({date: getDateString(new Date()), amount: parseFloat(amount)}); localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); showKhata(); } }
+function addPayment(id){
+  let k = khataData.find(x => x.id == id);
+  let amount = prompt(`${k.name} ने कितना रुपया जमा किया?`, "");
+  if(amount &&!isNaN(amount) && amount > 0){
+    k.paymentHistory.push({date: getDateString(new Date()), amount: parseFloat(amount)});
+    localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+    showKhata();
+  }
+}
 
-function deleteKhata(id){ if(confirm("पक्का चुकता करके Delete करना है?")){ khataData = khataData.filter(x => x.id!= id); localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); showKhata(); } }
+function deleteKhata(id){
+  if(confirm("पक्का चुकता करके Delete करना है?")){
+    khataData = khataData.filter(x => x.id!= id);
+    localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
+    showKhata();
+  }
+}
 
 function printAll(){ window.print(); }
 
@@ -126,10 +160,12 @@ function showKhata(data = khataData){
   if(data.length === 0){ list.innerHTML += "<p style='text-align:center;'>अभी कोई खाता नहीं है</p>"; return; }
   data.forEach(k => {
     let h = hisabNikalo(k);
-    let photoHtml = k.photo? `<img src="${k.photo}" title="बड़ा देखने के लिए क्लिक करें" onclick="window.open('${k.photo}')">` : "";
+    let photoHtml = k.photo? `<img src="${k.photo}" onclick="window.open('${k.photo}')">` : "";
     let gramText = k.gram? ` - ${k.gram} ग्राम` : "";
     let locationText = k.location? `<div class="row secret"><span>कहां रखा है:</span><span>${k.location}</span></div>` : "";
     let paymentLog = ""; if(k.paymentHistory && k.paymentHistory.length > 0){ paymentLog = "<div class='payment-log'><b>जमा इतिहास:</b> "; k.paymentHistory.forEach(p => { paymentLog += `₹${p.amount} | `; }) paymentLog += "</div>"; }
+
+    // 🔥 ONCLICK सीधा ID भेज रहे हैं
     list.innerHTML += `<div class="khata-card">
       <h3>${k.name}</h3>
       ${photoHtml}
@@ -143,14 +179,18 @@ function showKhata(data = khataData){
       ${paymentLog}
       ${h.karariStatus?`<div class="danger">${h.karariStatus}</div>`:''}
       <div style="margin-top:8px;">
-        <button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊 बोलें</button>
+        <button class="btn-small btn-speak" onclick="bolKeBatao(${k.id})">🔊 बोलें</button>
         <button class="btn-small btn-payment" onclick="addPayment(${k.id})">💰 जमा</button>
         <button class="btn-small btn-delete" onclick="deleteKhata(${k.id})">🗑️ चुकता</button>
       </div>
     </div>`;
   });
 }
-function searchKhata(){ let q = document.getElementById('searchInput').value.toLowerCase(); showKhata(khataData.filter(k => k.name.toLowerCase().includes(q))); }
+
+function searchKhata(){
+  let q = document.getElementById('searchInput').value.toLowerCase();
+  showKhata(khataData.filter(k => k.name.toLowerCase().includes(q)));
+}
 </script>
 </body>
 </html>
