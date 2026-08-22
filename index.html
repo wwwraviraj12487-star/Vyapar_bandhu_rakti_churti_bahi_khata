@@ -4,12 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vyapar Bandhu - 100% शुद्ध बही खाता</title>
-
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-512.png">
 <link rel="apple-touch-icon" href="icon-512.png">
 <meta name="theme-color" content="#138808">
-
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <style>
 body { font-family: Arial; background: #f0f8ff; margin: 0; font-size: 14px; }
@@ -117,6 +115,11 @@ document.getElementById('datePreview').innerText="तारीख: "+sDate(new D
 document.getElementById('btnAdd').onclick=function(){ let n=document.getElementById('custName').value; let s=document.getElementById('samanName').value; let d=document.getElementById('udharDate').value; let m=parseFloat(document.getElementById('mulDhan').value); if(!n||!s||!d||!m){ alert("नाम, सामान, तारीख, मूलधन जरूरी"); return; } let f=document.getElementById('samanPhoto').files[0]; if(f){ let r=new FileReader(); r.onload=e=>saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),e.target.result); r.readAsDataURL(f); } else saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),""); };
 document.getElementById('btnPrint').onclick=printAll;
 checkSub(); showKhata();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>
