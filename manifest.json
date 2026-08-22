@@ -1,58 +1,30 @@
 {
-  "id": "/",
   "name": "Vyapar Bandhu - Rojmel Bahi Khata",
   "short_name": "Vyapar Bandhu",
-  "description": "Vyapariyon ke liye best udhari, jama kharch bahi khata app",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "browser"],
-  "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#0066ff",
-  "lang": "hi",
-  "dir": "ltr",
-  "categories": ["business", "finance", "productivity"],
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-e961d8d1c6a0",
-  "scope_extensions": [
-    { "origin": "https://wwwraviraj12487-star.github.io" }
-  ],
+  "description": "Vyapariyon ke liye best bahi khata app",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ],
   "screenshots": [
     {
       "src": "icon-512.png",
-      "sizes": "540x720",
+      "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Vyapar Bandhu App"
+      "form_factor": "narrow"
     },
     {
       "src": "icon-512.png",
-      "sizes": "720x540",
+      "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "wide",
-      "label": "Vyapar Bandhu App"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Bahi Khata Khol",
-      "url": "./",
-      "description": "Apni bahi khata dekho",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "form_factor": "wide"
     }
   ]
 }
