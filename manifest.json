@@ -1,8 +1,11 @@
 {
   "name": "Vyapar Bandhu Bahi Khata",
   "short_name": "Bahi Khata",
-  "start_url": "index.html",
+  "description": "Vyapar Bandhu Rakti Churti Bahi Khata App",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#138808",
   "icons": [
