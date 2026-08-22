@@ -1,8 +1,9 @@
-const CACHE_NAME = 'bahikhata-v1';
+const CACHE_NAME = 'bahikhata-v2';
 const urlsToCache = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
   './icon-512.png'
 ];
 
@@ -25,5 +26,19 @@ self.addEventListener('fetch', event => {
         return fetch(event.request);
       }
     )
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
+        })
+      );
+    })
   );
 });
