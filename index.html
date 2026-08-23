@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vyapar Bandhu - Gmail Sync ON</title>
-<link rel="manifest" href="manifest.json?v=5">
+<link rel="manifest" href="manifest.json?v=6">
 <link rel="icon" type="image/png" href="icon-512.png">
 <meta name="theme-color" content="#138808">
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -30,7 +30,8 @@ label { font-weight: bold; display:block; margin-top:8px; }
 #subscriptionOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.92); z-index: 99999; display: none; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
 .sub-box { background: #fff; border-radius: 15px; padding: 22px; width: 100%; max-width: 380px; text-align: center; border: 4px solid #FF9933; }
 .btn-pay { background: #000080; color: #fff; padding: 15px; width: 100%; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top:15px; }
-#installBtn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:14px 28px; background:#138808; color:white; border:none; border-radius:30px; font-size:16px; font-weight:bold; z-index:99999; box-shadow:0 4px 15px rgba(0,0,0,0.4); display:none; }
+#installBtn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:14px 28px; background:#138808; color:white; border:none; border-radius:30px; font-size:16px; font-weight:bold; z-index:99999; box-shadow:0 4px 15px rgba(0,0,0,0.4); display:none; animation: bounce 1.5s infinite; }
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
 #loginScreen { position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, #FF9933, #fff, #138808); z-index: 100000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center; }
 .login-box { background:#fff; padding:25px; border-radius:15px; width:100%; max-width:360px; box-shadow:0 10px 30px rgba(0,0,0,0.3); border:3px solid #000080; }
 </style>
@@ -61,7 +62,7 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </div>
 </div>
 <div class="today-date" id="todayDate">आज: लोड हो रहा है...</div>
-<button id="installBtn">📲 App Install करो</button>
+<button id="installBtn">📲 App Install करो - एक क्लिक में</button>
 
 <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()"></div>
 <div class="calc-box">
@@ -194,10 +195,51 @@ document.getElementById('datePreview').innerText="तारीख: "+sDate(new D
 document.getElementById('btnAdd').onclick=function(){ let n=document.getElementById('custName').value; let s=document.getElementById('samanName').value; let d=document.getElementById('udharDate').value; let m=parseFloat(document.getElementById('mulDhan').value); if(!n||!s||!d||!m){ alert("नाम, सामान, तारीख, मूलधन जरूरी"); return; } let f=document.getElementById('samanPhoto').files[0]; if(f){ let r=new FileReader(); r.onload=e=>saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),e.target.result); r.readAsDataURL(f); } else saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),""); };
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=5'); }
-let deferredPrompt; const installBtn = document.getElementById('installBtn');
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'block'; });
-installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') { installBtn.style.display = 'none'; } deferredPrompt = null; } });
+
+// PWA Service Worker + Install Button FIX
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=6'); }
+
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+
+// Chrome jab install ka mauka dega to isme ayega
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+});
+
+// Button par click karne par
+installBtn.addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      installBtn.style.display = 'none';
+    }
+    deferredPrompt = null;
+  } else {
+    // Agar Chrome ne prompt block kiya to manual instructions
+    if (navigator.userAgent.toLowerCase().includes('chrome')) {
+      alert("Install karne ke liye:\n\n1. Upar 3 dot ⋮ par click karo\n2. 'Install app' ya 'Add to Home screen' par click karo\n\nFir App me Chrome ka nishan nahi ayega!");
+    } else {
+      alert("Browser ke Share button se 'Add to Home Screen' karo");
+    }
+  }
+});
+
+// App install ho gaya to button hata do
+window.addEventListener('appinstalled', () => {
+  installBtn.style.display = 'none';
+});
+
+// FIX: Agar standalone me nahi hai to 3 second baad button zabardasti dikhao - sabko dikhega!
+setTimeout(()=>{
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(!isStandalone){
+     installBtn.style.display = 'block';
+  }
+}, 3000);
 </script>
 </body>
 </html>
