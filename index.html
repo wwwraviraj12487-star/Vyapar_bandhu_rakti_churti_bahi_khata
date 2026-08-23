@@ -103,12 +103,23 @@ let currentUser = null;
 const RAZORPAY_LIVE_KEY = "rzp_live_TSSLcwOZn8V7er";
 let khataData=[]; let isDataLoaded=false;
 
+// ===== FINAL GMAIL LOGIN FIX FOR INSTALLED APP =====
 document.getElementById('googleLoginBtn').onclick = ()=>{
-  document.getElementById('loginStatus').innerText = "Login ho raha hai...";
+  document.getElementById('loginStatus').innerText = "Login ho raha hai, Gmail khul raha hai...";
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(e=>{ alert(e.message); document.getElementById('loginStatus').innerText=e.message; });
+  auth.signInWithRedirect(provider);
 };
-function logout(){ if(confirm("Logout? Data safe rahega")) auth.signOut(); }
+auth.getRedirectResult().then((result)=>{
+  if(result && result.user){
+    console.log("Login success");
+  }
+}).catch(e=>{
+  document.getElementById('loginStatus').innerText = e.message;
+  console.log(e);
+});
+
+function logout(){ if(confirm("Logout? Data safe rahega Gmail par")) auth.signOut(); }
+
 auth.onAuthStateChanged(async (user)=>{
   if(user){
     currentUser=user;
@@ -121,6 +132,7 @@ auth.onAuthStateChanged(async (user)=>{
     document.getElementById('loginScreen').style.display='flex';
   }
 });
+
 async function loadFromFirebase(){
   try{
     document.getElementById('syncStatus').innerText="● Loading...";
@@ -133,7 +145,13 @@ async function loadFromFirebase(){
       let r=localStorage.getItem('vyaparKhata'); if(r && r.length>2){ khataData=JSON.parse(r); await saveToFirebase(); }
     }
     isDataLoaded=true; document.getElementById('syncStatus').innerText="● Synced to Gmail"; checkSub(); showKhata();
-  }catch(e){ let r=localStorage.getItem('vyaparKhata'); if(r) khataData=JSON.parse(r); isDataLoaded=true; document.getElementById('syncStatus').innerText="● Offline"; checkSub(); showKhata(); }
+  }catch(e){
+    console.log(e);
+    let r=localStorage.getItem('vyaparKhata'); if(r) khataData=JSON.parse(r);
+    isDataLoaded=true;
+    document.getElementById('syncStatus').innerText="● Offline - "+e.message;
+    checkSub(); showKhata();
+  }
 }
 let saveTimer;
 async function saveToFirebase(){
@@ -141,7 +159,7 @@ async function saveToFirebase(){
   try{
     localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
     const sub = localStorage.getItem('vyapar_subscription');
-    document.getElementById('syncStatus').innerText="● Saving...";
+    document.getElementById('syncStatus').innerText="● Saving to Gmail...";
     await db.collection('users').doc(currentUser.uid).set({
       email: currentUser.email, name: currentUser.displayName,
       khataData: JSON.stringify(khataData),
@@ -149,12 +167,12 @@ async function saveToFirebase(){
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
     document.getElementById('syncStatus').innerText="● Synced to Gmail";
-  }catch(e){ document.getElementById('syncStatus').innerText="● No Net"; }
+  }catch(e){ document.getElementById('syncStatus').innerText="● No Net: "+e.message; console.log(e); }
 }
 function autoSave(){ if(!isDataLoaded) return; localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveToFirebase(), 1000); }
 
 function sDate(d){ try{ let dt=new Date(d); return dt.getDate()+"/"+(dt.getMonth()+1)+"/"+dt.getFullYear(); }catch(e){ return new Date().toDateString(); } }
-function speak(t){ try{ let s=new SpeechSynthesisUtterance(t); s.lang='hi-IN'; s.rate=0.85; speechSynthesis.speak(s); }catch(e){} }
+
 function checkSub(){
   try{
     let now=new Date(); let statusEl=document.getElementById('subscriptionStatus'); let todayEl=document.getElementById('todayDate');
@@ -196,33 +214,26 @@ document.getElementById('btnAdd').onclick=function(){ let n=document.getElementB
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
 
-// --- FINAL PWA FIX - DIRECT INSTALL ---
+// PWA Install
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=800');
+  navigator.serviceWorker.register('./sw.js?v=900');
 }
-
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
-
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   installBtn.style.display = 'block';
 });
-
 installBtn.addEventListener('click', async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
   const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') {
-    installBtn.style.display = 'none';
-  }
+  if (outcome === 'accepted') installBtn.style.display = 'none';
   deferredPrompt = null;
 });
-
 window.addEventListener('appinstalled', () => {
   installBtn.style.display = 'none';
-  deferredPrompt = null;
 });
 </script>
 </body>
