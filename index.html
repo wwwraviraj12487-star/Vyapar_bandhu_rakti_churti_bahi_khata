@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vyapar Bandhu - Gmail Sync ON</title>
-<link rel="manifest" href="manifest.json?v=6">
+<link rel="manifest" href="./manifest.json">
 <link rel="icon" type="image/png" href="icon-512.png">
 <meta name="theme-color" content="#138808">
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -196,50 +196,34 @@ document.getElementById('btnAdd').onclick=function(){ let n=document.getElementB
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
 
-// PWA Service Worker + Install Button FIX
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js?v=6'); }
+// --- FINAL PWA FIX - DIRECT INSTALL ---
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js?v=800');
+}
 
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
 
-// Chrome jab install ka mauka dega to isme ayega
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   installBtn.style.display = 'block';
 });
 
-// Button par click karne par
 installBtn.addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      installBtn.style.display = 'none';
-    }
-    deferredPrompt = null;
-  } else {
-    // Agar Chrome ne prompt block kiya to manual instructions
-    if (navigator.userAgent.toLowerCase().includes('chrome')) {
-      alert("Install karne ke liye:\n\n1. Upar 3 dot ⋮ par click karo\n2. 'Install app' ya 'Add to Home screen' par click karo\n\nFir App me Chrome ka nishan nahi ayega!");
-    } else {
-      alert("Browser ke Share button se 'Add to Home Screen' karo");
-    }
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') {
+    installBtn.style.display = 'none';
   }
+  deferredPrompt = null;
 });
 
-// App install ho gaya to button hata do
 window.addEventListener('appinstalled', () => {
   installBtn.style.display = 'none';
+  deferredPrompt = null;
 });
-
-// FIX: Agar standalone me nahi hai to 3 second baad button zabardasti dikhao - sabko dikhega!
-setTimeout(()=>{
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if(!isStandalone){
-     installBtn.style.display = 'block';
-  }
-}, 3000);
 </script>
 </body>
 </html>
