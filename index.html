@@ -38,22 +38,18 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </style>
 </head>
 <body>
-
-<button id="installBtn">📲 App Install करो - एक क्लिक में</button>
-
+<button id="installBtn">📲 एक क्लिक में App Download करो</button>
 <div id="loginScreen">
   <div class="login-box">
     <div style="font-size:50px">📒</div>
     <h2 style="color:#000080; margin:10px 0">Vyapar Bandhu</h2>
-    <p style="font-size:13px; color:#333; font-weight:bold">Gmail से Login करो, Data कभी Delete नहीं होगा!<br>App में भी Login जरूरी है</p>
+    <p style="font-size:13px; color:#333; font-weight:bold">Gmail से Login करो, Data कभी Delete नहीं होगा!</p>
     <button id="googleLoginBtn" style="width:100%; padding:14px; background:#fff; border:2px solid #000080; border-radius:10px; font-weight:bold; margin-top:15px; display:flex; align-items:center; justify-content:center; gap:10px;">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px"> Gmail Se Login Karo
     </button>
     <p id="loginStatus" style="font-size:11px; color:#666; margin-top:10px"></p>
-    <p style="font-size:10px; color:#138808; margin-top:10px">App Install करने के बाद यहाँ दोबारा Login करें</p>
   </div>
 </div>
-
 <div id="mainApp">
 <div class="gov-board">
 <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
@@ -88,9 +84,7 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </div>
 <div id="khataList"></div>
 </div>
-
 <div id="subscriptionOverlay"><div class="sub-box"><div style="font-size:50px">🙏</div><h2 style="color:#d32f2f">मालिक!</h2><p style="font-weight:bold">मालिक मेरा मजदूरी दे दो, घर पे बीवी बाल बच्चे के लिए साग सब्जी ले जाना है</p><p id="subDaysLeft" style="color:#000080;font-weight:bold"></p><button class="btn-pay" onclick="payNow()">💳 ₹99 रिचार्ज करो</button></div></div>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDu8XsHUzViiJsycqNkKSx2Fv3IMMZ4K4A",
@@ -107,9 +101,7 @@ const db = firebase.firestore();
 let currentUser = null;
 const RAZORPAY_LIVE_KEY = "rzp_live_TSSLcwOZn8V7er";
 let khataData=[]; let isDataLoaded=false;
-
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
 document.getElementById('googleLoginBtn').onclick = async ()=>{
   document.getElementById('loginStatus').innerText = "Gmail khul raha hai...";
   const provider = new firebase.auth.GoogleAuthProvider();
@@ -123,15 +115,12 @@ document.getElementById('googleLoginBtn').onclick = async ()=>{
     await auth.signInWithRedirect(provider);
   }
 };
-
 auth.getRedirectResult().then((result)=>{
   if(result && result.user){ console.log("Redirect Login Success"); }
 }).catch(e=>{
   document.getElementById('loginStatus').innerText = e.message;
 });
-
 function logout(){ if(confirm("Logout? Data Gmail par safe rahega")) auth.signOut(); }
-
 auth.onAuthStateChanged(async (user)=>{
   if(user){
     currentUser=user;
@@ -146,7 +135,6 @@ auth.onAuthStateChanged(async (user)=>{
     document.getElementById('loginScreen').style.display='flex';
   }
 });
-
 async function loadFromFirebase(){
   try{
     document.getElementById('syncStatus').innerText="● Loading...";
@@ -222,31 +210,28 @@ document.getElementById('datePreview').innerText="तारीख: "+sDate(new D
 document.getElementById('btnAdd').onclick=function(){ let n=document.getElementById('custName').value; let s=document.getElementById('samanName').value; let d=document.getElementById('udharDate').value; let m=parseFloat(document.getElementById('mulDhan').value); if(!n||!s||!d||!m){ alert("नाम, सामान, तारीख, मूलधन जरूरी"); return; } let f=document.getElementById('samanPhoto').files[0]; if(f){ let r=new FileReader(); r.onload=e=>saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),e.target.result); r.readAsDataURL(f); } else saveKhata(n,document.getElementById('custEmail').value,document.getElementById('custAddress').value,s,document.getElementById('samanGram').value,document.getElementById('samanLocation').value,document.getElementById('karariDin').value,d,m,parseFloat(document.getElementById('byajRate').value),""); };
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
-
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=FINAL2000');
+  navigator.serviceWorker.register('./sw.js?v=DIRECTFINAL');
 }
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = 'block';
-});
-setTimeout(()=>{
-  installBtn.style.display = 'block';
-  if(!deferredPrompt){
-    installBtn.innerText = "📲 App Install करो (Menu > Install)";
-  }
-}, 3000);
+if (window.matchMedia('(display-mode: standalone)').matches) {
+  installBtn.style.display = 'none';
+} else {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+  });
+}
 installBtn.addEventListener('click', async () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') installBtn.style.display = 'none';
+    if (outcome === 'accepted') {
+      installBtn.style.display = 'none';
+    }
     deferredPrompt = null;
-  } else {
-    alert("ऊपर 3 dot ⋮ पर क्लिक करो > Install app / Add to Home Screen दबाओ!");
   }
 });
 window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; });
