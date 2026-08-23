@@ -39,6 +39,8 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </head>
 <body>
 
+<button id="installBtn">📲 App Install करो - एक क्लिक में</button>
+
 <div id="loginScreen">
   <div class="login-box">
     <div style="font-size:50px">📒</div>
@@ -65,7 +67,6 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </div>
 </div>
 <div class="today-date" id="todayDate">आज: लोड हो रहा है...</div>
-<button id="installBtn">📲 App Install करो - एक क्लिक में</button>
 <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()"></div>
 <div class="calc-box">
 <h2>📒 नया खाता जोड़ें</h2>
@@ -143,8 +144,6 @@ auth.onAuthStateChanged(async (user)=>{
   } else {
     document.getElementById('mainApp').style.display='none';
     document.getElementById('loginScreen').style.display='flex';
-    document.getElementById('userPhoto').style.display='none';
-    document.getElementById('userNameDisplay').innerText='';
   }
 });
 
@@ -225,7 +224,7 @@ document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=FINAL1001');
+  navigator.serviceWorker.register('./sw.js?v=FINAL2000');
 }
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
@@ -234,12 +233,21 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredPrompt = e;
   installBtn.style.display = 'block';
 });
+setTimeout(()=>{
+  installBtn.style.display = 'block';
+  if(!deferredPrompt){
+    installBtn.innerText = "📲 App Install करो (Menu > Install)";
+  }
+}, 3000);
 installBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === 'accepted') installBtn.style.display = 'none';
-  deferredPrompt = null;
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') installBtn.style.display = 'none';
+    deferredPrompt = null;
+  } else {
+    alert("ऊपर 3 dot ⋮ पर क्लिक करो > Install app / Add to Home Screen दबाओ!");
+  }
 });
 window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; });
 </script>
