@@ -103,33 +103,44 @@ let currentUser = null;
 const RAZORPAY_LIVE_KEY = "rzp_live_TSSLcwOZn8V7er";
 let khataData=[]; let isDataLoaded=false;
 
-// ===== FINAL GMAIL LOGIN FIX FOR INSTALLED APP =====
-document.getElementById('googleLoginBtn').onclick = ()=>{
-  document.getElementById('loginStatus').innerText = "Login ho raha hai, Gmail khul raha hai...";
+// === PWA GMAIL FIX ===
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+document.getElementById('googleLoginBtn').onclick = async ()=>{
+  document.getElementById('loginStatus').innerText = "Gmail khul raha hai...";
   const provider = new firebase.auth.GoogleAuthProvider();
-  auth.signInWithRedirect(provider);
-};
-auth.getRedirectResult().then((result)=>{
-  if(result && result.user){
-    console.log("Login success");
+  try {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      await auth.signInWithRedirect(provider);
+    } else {
+      await auth.signInWithPopup(provider);
+    }
+  } catch(e) {
+    console.log("Popup blocked, using redirect", e);
+    await auth.signInWithRedirect(provider);
   }
+};
+
+auth.getRedirectResult().then((result)=>{
+  if(result && result.user){ console.log("Redirect Login Success"); }
 }).catch(e=>{
   document.getElementById('loginStatus').innerText = e.message;
-  console.log(e);
 });
 
-function logout(){ if(confirm("Logout? Data safe rahega Gmail par")) auth.signOut(); }
+function logout(){ if(confirm("Logout? Data Gmail par safe rahega")) auth.signOut(); }
 
 auth.onAuthStateChanged(async (user)=>{
   if(user){
     currentUser=user;
     document.getElementById('loginScreen').style.display='none';
-    document.getElementById('userPhoto').src=user.photoURL;
+    document.getElementById('userPhoto').src=user.photoURL || '';
     document.getElementById('userPhoto').style.display='block';
-    document.getElementById('userNameDisplay').innerText=user.displayName;
+    document.getElementById('userNameDisplay').innerText=user.displayName || user.email;
     await loadFromFirebase();
   } else {
     document.getElementById('loginScreen').style.display='flex';
+    document.getElementById('userPhoto').style.display='none';
+    document.getElementById('userNameDisplay').innerText='';
   }
 });
 
@@ -146,11 +157,8 @@ async function loadFromFirebase(){
     }
     isDataLoaded=true; document.getElementById('syncStatus').innerText="● Synced to Gmail"; checkSub(); showKhata();
   }catch(e){
-    console.log(e);
     let r=localStorage.getItem('vyaparKhata'); if(r) khataData=JSON.parse(r);
-    isDataLoaded=true;
-    document.getElementById('syncStatus').innerText="● Offline - "+e.message;
-    checkSub(); showKhata();
+    isDataLoaded=true; document.getElementById('syncStatus').innerText="● Offline"; checkSub(); showKhata();
   }
 }
 let saveTimer;
@@ -159,7 +167,7 @@ async function saveToFirebase(){
   try{
     localStorage.setItem('vyaparKhata', JSON.stringify(khataData));
     const sub = localStorage.getItem('vyapar_subscription');
-    document.getElementById('syncStatus').innerText="● Saving to Gmail...";
+    document.getElementById('syncStatus').innerText="● Saving...";
     await db.collection('users').doc(currentUser.uid).set({
       email: currentUser.email, name: currentUser.displayName,
       khataData: JSON.stringify(khataData),
@@ -167,12 +175,11 @@ async function saveToFirebase(){
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
     document.getElementById('syncStatus').innerText="● Synced to Gmail";
-  }catch(e){ document.getElementById('syncStatus').innerText="● No Net: "+e.message; console.log(e); }
+  }catch(e){ document.getElementById('syncStatus').innerText="● No Net"; }
 }
 function autoSave(){ if(!isDataLoaded) return; localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveToFirebase(), 1000); }
 
 function sDate(d){ try{ let dt=new Date(d); return dt.getDate()+"/"+(dt.getMonth()+1)+"/"+dt.getFullYear(); }catch(e){ return new Date().toDateString(); } }
-
 function checkSub(){
   try{
     let now=new Date(); let statusEl=document.getElementById('subscriptionStatus'); let todayEl=document.getElementById('todayDate');
@@ -214,9 +221,9 @@ document.getElementById('btnAdd').onclick=function(){ let n=document.getElementB
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
 
-// PWA Install
+// PWA Install - FINAL
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=900');
+  navigator.serviceWorker.register('./sw.js?v=FINAL1000').then(()=>console.log("SW OK"));
 }
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
@@ -232,9 +239,7 @@ installBtn.addEventListener('click', async () => {
   if (outcome === 'accepted') installBtn.style.display = 'none';
   deferredPrompt = null;
 });
-window.addEventListener('appinstalled', () => {
-  installBtn.style.display = 'none';
-});
+window.addEventListener('appinstalled', () => { installBtn.style.display = 'none'; });
 </script>
 </body>
 </html>
