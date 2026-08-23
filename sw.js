@@ -1,8 +1,7 @@
-const CACHE_NAME = 'bahikhata-v600';
+const CACHE_NAME = 'vyapar-bandhu-v1000';
 const urlsToCache = [
-  './',
-  './index.html?v=600',
-  './manifest.json?v=6',
+  './index.html',
+  './manifest.json',
   './icon-192.png',
   './icon-512.png'
 ];
@@ -10,36 +9,21 @@ const urlsToCache = [
 self.addEventListener('install', event => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(name => {
-          if (name !== CACHE_NAME) {
-            console.log('Deleting old cache:', name);
-            return caches.delete(name);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then(keys => Promise.all(
+      keys.map(key => { if(key !== CACHE_NAME) return caches.delete(key); })
+    ))
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
