@@ -34,6 +34,7 @@ label { font-weight: bold; display:block; margin-top:8px; }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
 #loginScreen { position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, #FF9933, #fff, #138808); z-index: 100000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center; }
 .login-box { background:#fff; padding:25px; border-radius:15px; width:100%; max-width:360px; box-shadow:0 10px 30px rgba(0,0,0,0.3); border:3px solid #000080; }
+#mainApp { display: none; }
 </style>
 </head>
 <body>
@@ -42,14 +43,16 @@ label { font-weight: bold; display:block; margin-top:8px; }
   <div class="login-box">
     <div style="font-size:50px">📒</div>
     <h2 style="color:#000080; margin:10px 0">Vyapar Bandhu</h2>
-    <p style="font-size:13px; color:#333; font-weight:bold">Gmail से Login करो, Data कभी Delete नहीं होगा!<br>दूसरे मोबाइल में भी आ जायेगा</p>
+    <p style="font-size:13px; color:#333; font-weight:bold">Gmail से Login करो, Data कभी Delete नहीं होगा!<br>App में भी Login जरूरी है</p>
     <button id="googleLoginBtn" style="width:100%; padding:14px; background:#fff; border:2px solid #000080; border-radius:10px; font-weight:bold; margin-top:15px; display:flex; align-items:center; justify-content:center; gap:10px;">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:20px"> Gmail Se Login Karo
     </button>
     <p id="loginStatus" style="font-size:11px; color:#666; margin-top:10px"></p>
+    <p style="font-size:10px; color:#138808; margin-top:10px">App Install करने के बाद यहाँ दोबारा Login करें</p>
   </div>
 </div>
 
+<div id="mainApp">
 <div class="gov-board">
 <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
 <p>Made in Bihar | 12 महीना बाद चक्रवृद्धि</p>
@@ -63,7 +66,6 @@ label { font-weight: bold; display:block; margin-top:8px; }
 </div>
 <div class="today-date" id="todayDate">आज: लोड हो रहा है...</div>
 <button id="installBtn">📲 App Install करो - एक क्लिक में</button>
-
 <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 नाम या पता लिखकर खोजें..." onkeyup="searchKhata()"></div>
 <div class="calc-box">
 <h2>📒 नया खाता जोड़ें</h2>
@@ -84,6 +86,8 @@ label { font-weight: bold; display:block; margin-top:8px; }
 <button class="btn-main" style="background:#d32f2f" id="btnGmail">📧 सभी को Gmail भेजें</button>
 </div>
 <div id="khataList"></div>
+</div>
+
 <div id="subscriptionOverlay"><div class="sub-box"><div style="font-size:50px">🙏</div><h2 style="color:#d32f2f">मालिक!</h2><p style="font-weight:bold">मालिक मेरा मजदूरी दे दो, घर पे बीवी बाल बच्चे के लिए साग सब्जी ले जाना है</p><p id="subDaysLeft" style="color:#000080;font-weight:bold"></p><button class="btn-pay" onclick="payNow()">💳 ₹99 रिचार्ज करो</button></div></div>
 
 <script>
@@ -103,7 +107,6 @@ let currentUser = null;
 const RAZORPAY_LIVE_KEY = "rzp_live_TSSLcwOZn8V7er";
 let khataData=[]; let isDataLoaded=false;
 
-// === PWA GMAIL FIX ===
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 document.getElementById('googleLoginBtn').onclick = async ()=>{
@@ -116,7 +119,6 @@ document.getElementById('googleLoginBtn').onclick = async ()=>{
       await auth.signInWithPopup(provider);
     }
   } catch(e) {
-    console.log("Popup blocked, using redirect", e);
     await auth.signInWithRedirect(provider);
   }
 };
@@ -133,11 +135,13 @@ auth.onAuthStateChanged(async (user)=>{
   if(user){
     currentUser=user;
     document.getElementById('loginScreen').style.display='none';
+    document.getElementById('mainApp').style.display='block';
     document.getElementById('userPhoto').src=user.photoURL || '';
     document.getElementById('userPhoto').style.display='block';
     document.getElementById('userNameDisplay').innerText=user.displayName || user.email;
     await loadFromFirebase();
   } else {
+    document.getElementById('mainApp').style.display='none';
     document.getElementById('loginScreen').style.display='flex';
     document.getElementById('userPhoto').style.display='none';
     document.getElementById('userNameDisplay').innerText='';
@@ -178,7 +182,6 @@ async function saveToFirebase(){
   }catch(e){ document.getElementById('syncStatus').innerText="● No Net"; }
 }
 function autoSave(){ if(!isDataLoaded) return; localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveToFirebase(), 1000); }
-
 function sDate(d){ try{ let dt=new Date(d); return dt.getDate()+"/"+(dt.getMonth()+1)+"/"+dt.getFullYear(); }catch(e){ return new Date().toDateString(); } }
 function checkSub(){
   try{
@@ -221,9 +224,8 @@ document.getElementById('btnAdd').onclick=function(){ let n=document.getElementB
 document.getElementById('btnPrint').onclick=printAll;
 document.getElementById('btnGmail').onclick=sendAllMail;
 
-// PWA Install - FINAL
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js?v=FINAL1000').then(()=>console.log("SW OK"));
+  navigator.serviceWorker.register('./sw.js?v=FINAL1001');
 }
 let deferredPrompt;
 const installBtn = document.getElementById('installBtn');
