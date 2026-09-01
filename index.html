@@ -32,13 +32,15 @@ label { font-weight: bold; display:block; margin-top:8px; }
 .btn-pay { background: #000080; color: #fff; padding: 15px; width: 100%; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; margin-top:15px; }
 #installBtn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); padding:14px 28px; background:#138808; color:white; border:none; border-radius:30px; font-size:16px; font-weight:bold; z-index:99999; box-shadow:0 4px 15px rgba(0,0,0,0.4); display:none; animation: bounce 1.5s infinite; }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-8px)} }
-#loginScreen { position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, #FF9933, #fff, #138808); z-index: 100000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center; }
+#loginScreen { position:fixed; top:0; left:0; width:100%; height:100%; background: linear-gradient(180deg, #FF9933, #fff, #138808); z-index: 100000; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; text-align:center; overflow-y:auto; }
 .login-box { background:#fff; padding:25px; border-radius:15px; width:100%; max-width:360px; box-shadow:0 10px 30px rgba(0,0,0,0.3); border:3px solid #000080; }
+.public-search-box { background:#fff; padding:15px; border-radius:15px; width:100%; max-width:360px; box-shadow:0 10px 30px rgba(0,0,0,0.3); border:3px solid #138808; margin-top:15px; text-align:left; }
 #mainApp { display: none; }
 </style>
 </head>
 <body>
 <button id="installBtn">📲 एक क्लिक में App Download करो</button>
+
 <div id="loginScreen">
   <div class="login-box">
     <div style="font-size:50px">📒</div>
@@ -49,7 +51,18 @@ label { font-weight: bold; display:block; margin-top:8px; }
     </button>
     <p id="loginStatus" style="font-size:11px; color:#666; margin-top:10px"></p>
   </div>
+
+  <div class="public-search-box">
+    <label style="color:#138808; text-align:center; font-size:15px;">🔍 बिना Login के Bandhak Code Search</label>
+    <p style="font-size:11px; color:#555; text-align:center; margin:4px 0;">ग्राहक अपना Code डालकर हिसाब देख सकता है</p>
+    <div style="display:flex; gap:6px; margin-top:8px;">
+      <input type="text" id="publicBandhakInput" placeholder="जैसे: PUPRI-A2K9" style="flex:1; padding:10px; border:2px solid #138808; border-radius:6px; margin:0;">
+      <button onclick="searchPublicBandhak()" style="background:#138808; color:#fff; border:none; padding:10px 16px; border-radius:6px; font-weight:bold;">खोजें</button>
+    </div>
+    <div id="publicResult" style="margin-top:10px;"></div>
+  </div>
 </div>
+
 <div id="mainApp">
 <div class="gov-board">
 <h1>Vyapar Bandhu - 100% शुद्ध बही खाता</h1>
@@ -67,7 +80,7 @@ label { font-weight: bold; display:block; margin-top:8px; }
 <div class="search-box" style="border:2px solid #000080; background:#eef2ff;">
   <label style="color:#000080">🔍 Bandhak Code Search (किसी भी मोबाइल में खुलेगा)</label>
   <div style="display:flex; gap:6px; margin-top:6px;">
-    <input type="text" id="bandhakCodeInput" placeholder="जैसे: PUPRI-A2K9 या BNDK-8K2L" style="flex:1; margin:0; border-color:#000080;">
+    <input type="text" id="bandhakCodeInput" placeholder="जैसे: PUPRI-A2K9" style="flex:1; margin:0; border-color:#000080;">
     <button onclick="searchBandhakCode()" style="background:#000080; color:#fff; border:none; padding:10px 16px; border-radius:6px; font-weight:bold;">खोजें</button>
   </div>
   <div id="bandhakSearchResult" style="margin-top:10px;"></div>
@@ -182,7 +195,6 @@ async function saveToFirebase(){
 }
 function autoSave(){ if(!isDataLoaded) return; localStorage.setItem('vyaparKhata', JSON.stringify(khataData)); clearTimeout(saveTimer); saveTimer=setTimeout(()=>saveToFirebase(), 1000); }
 
-// ==== BANDHAK CODE FEATURE ====
 function generateBandhakCode(location){
   let clean = (location||'BNDK').replace(/[^a-zA-Z]/g,'').substring(0,5).toUpperCase();
   if(clean.length<3) clean='BNDK';
@@ -193,30 +205,17 @@ async function saveToPublicSearch(khata){
   try{
     let h = hisab(khata);
     await db.collection('bandhak_codes').doc(khata.bandhakCode).set({
-      code: khata.bandhakCode,
-      name: khata.name,
-      email: khata.email||'',
-      address: khata.address||'',
-      saman: khata.saman,
-      gram: khata.gram||'',
-      location: khata.location||'',
-      karari: khata.karari||'',
-      date: khata.date,
-      mul: khata.mul,
-      rate: khata.rate,
-      photo: khata.photo||'',
-      total: h.total,
-      interest: h.interest,
-      paid: h.paid,
-      months: h.months,
-      days: h.days,
-      karariStatus: h.karari,
-      ownerUid: currentUser.uid,
-      ownerEmail: currentUser.email,
+      code: khata.bandhakCode, name: khata.name, email: khata.email||'', address: khata.address||'',
+      saman: khata.saman, gram: khata.gram||'', location: khata.location||'', karari: khata.karari||'',
+      date: khata.date, mul: khata.mul, rate: khata.rate, photo: khata.photo||'',
+      total: h.total, interest: h.interest, paid: h.paid, months: h.months, days: h.days, karariStatus: h.karari,
+      ownerUid: currentUser.uid, ownerEmail: currentUser.email,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   }catch(e){ console.log("Bandhak public save error", e); }
 }
+
+// Dono jagah ke liye same function use hoga
 async function searchBandhakCode(){
   let code = document.getElementById('bandhakCodeInput').value.trim().toUpperCase();
   if(!code){ alert("Bandhak Code डालो बबुआ!"); return; }
@@ -224,35 +223,45 @@ async function searchBandhakCode(){
   resultDiv.innerHTML = "<p style='text-align:center'>🔍 "+code+" खोज रहे हैं...</p>";
   try{
     let doc = await db.collection('bandhak_codes').doc(code).get();
-    if(!doc.exists){
-      resultDiv.innerHTML = "<p style='text-align:center;color:#d32f2f;font-weight:bold'>❌ "+code+" नहीं मिला! Code सही लिखो</p>";
-      return;
-    }
+    if(!doc.exists){ resultDiv.innerHTML = "<p style='text-align:center;color:#d32f2f;font-weight:bold'>❌ "+code+" नहीं मिला!</p>"; return; }
     let k = doc.data();
-    // Live hisab again for latest days
     let liveKhata = {mul:k.mul, rate:k.rate, date:k.date, karari:k.karari, paymentHistory:[]};
     let live = hisab(liveKhata);
-    // Use live interest but paid from stored if needed
     let photoHtml = k.photo? `<img src="${k.photo}" onclick="window.open('${k.photo}')" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:3px solid #000080;float:right;margin-left:10px">` : '';
+    resultDiv.innerHTML = `<div class="khata-card" style="border-left:6px solid #138808; background:#fffff8;"><h3 style="color:#000080;margin:0 0 8px 0">🔍 ${k.name}</h3>${photoHtml}<div style="background:#000080;color:#fff;padding:4px 10px;border-radius:20px;display:inline-block;font-weight:bold;font-size:13px;margin-bottom:6px;">Bandhak Code: ${k.code}</div><div class="row"><span>सामान:</span><span>${k.saman} ${k.gram?'- '+k.gram+' ग्राम':''}</span></div><div class="row" style="color:#d32f2f;font-weight:bold"><span>कहां रखा है:</span><span>${k.location||'पता नहीं'}</span></div><div class="row"><span>समय हुआ:</span><span>${live.months} महीना / ${live.days} दिन</span></div><div class="row"><span>मूलधन:</span><span>₹${parseFloat(k.mul).toFixed(2)}</span></div><div class="row"><span>ब्याज हुआ:</span><span>₹${live.interest.toFixed(2)}</span></div><div class="row"><span>जमा किया:</span><span>₹${parseFloat(k.paid||0).toFixed(2)}</span></div><div class="row total"><span>बकाया:</span><span>₹${live.total.toFixed(2)}</span></div>${live.karari?`<div class="danger">⚠️ ${live.karari}</div>`:''}</div>`;
+  }catch(e){ document.getElementById('bandhakSearchResult').innerHTML = "<p style='color:red;text-align:center'>Error: "+e.message+"</p>"; }
+}
+
+// BINA LOGIN WALA SEARCH - YEHI TUMHARI SCREENSHOT WALI PROBLEM SOLVE KAREGA
+async function searchPublicBandhak(){
+  let code = document.getElementById('publicBandhakInput').value.trim().toUpperCase();
+  if(!code){ alert("Code डालो बबुआ!"); return; }
+  let resultDiv = document.getElementById('publicResult');
+  resultDiv.innerHTML = "<p style='text-align:center'>🔍 "+code+" खोज रहे हैं...</p>";
+  try{
+    let doc = await db.collection('bandhak_codes').doc(code).get();
+    if(!doc.exists){ resultDiv.innerHTML = "<p style='text-align:center;color:#d32f2f;font-weight:bold'>❌ "+code+" नहीं मिला!</p>"; return; }
+    let k = doc.data();
+    let liveKhata = {mul:k.mul, rate:k.rate, date:k.date, karari:k.karari, paymentHistory:[]};
+    let live = hisab(liveKhata);
+    let photoHtml = k.photo? `<img src="${k.photo}" onclick="window.open('${k.photo}')" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:2px solid #138808;float:right;margin-left:8px">` : '';
     resultDiv.innerHTML = `
-      <div class="khata-card" style="border-left:6px solid #138808; background:#fffff8;">
-        <h3 style="color:#000080;margin:0 0 8px 0">🔍 ${k.name}</h3>
+      <div style="background:#fffff8; padding:10px; border-radius:10px; border-left:5px solid #138808; text-align:left; margin-top:8px; box-shadow:0 2px 5px #ccc;">
         ${photoHtml}
-        <div style="background:#000080;color:#fff;padding:4px 10px;border-radius:20px;display:inline-block;font-weight:bold;font-size:13px;margin-bottom:6px;">Bandhak Code: ${k.code}</div>
-        <div class="row"><span>सामान:</span><span>${k.saman} ${k.gram?'- '+k.gram+' ग्राम':''}</span></div>
-        <div class="row" style="color:#d32f2f;font-weight:bold"><span>कहां रखा है:</span><span>${k.location||'पता नहीं'}</span></div>
-        <div class="row"><span>समय हुआ:</span><span>${live.months} महीना / ${live.days} दिन</span></div>
-        <div class="row"><span>मूलधन:</span><span>₹${parseFloat(k.mul).toFixed(2)}</span></div>
-        <div class="row"><span>ब्याज हुआ:</span><span>₹${live.interest.toFixed(2)}</span></div>
-        <div class="row"><span>जमा किया:</span><span>₹${parseFloat(k.paid||0).toFixed(2)}</span></div>
-        <div class="row total"><span>बकाया:</span><span>₹${live.total.toFixed(2)}</span></div>
-        ${live.karari?`<div class="danger">⚠️ ${live.karari}</div>`:''}
-        <div style="margin-top:8px;text-align:center;color:green;font-weight:bold;font-size:12px;">✅ किसी भी मोबाइल में मिला - Verified by Vyapar Bandhu</div>
+        <b style="color:#000080; font-size:14px;">${k.name}</b><br>
+        <span style="background:#000080;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;">${k.code}</span><br><br>
+        <div style="font-size:13px; line-height:1.6;">
+          <div style="display:flex; justify-content:space-between;"><span>सामान:</span><span><b>${k.saman} ${k.gram?k.gram+'g':''}</b></span></div>
+          <div style="display:flex; justify-content:space-between; color:#d32f2f;"><span>रखा है:</span><span><b>${k.location||''}</b></span></div>
+          <div style="display:flex; justify-content:space-between;"><span>समय:</span><span>${live.days} दिन</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>मूलधन:</span><span>₹${k.mul}</span></div>
+          <div style="display:flex; justify-content:space-between;"><span>ब्याज:</span><span>₹${live.interest.toFixed(0)}</span></div>
+          <div style="display:flex; justify-content:space-between; font-weight:bold; color:#d32f2f; border-top:1px dashed #ccc; margin-top:4px; padding-top:4px;"><span>बकाया:</span><span>₹${live.total.toFixed(0)}</span></div>
+        </div>
+        <div style="margin-top:6px; background:${live.karari.includes('खत्म')?'#d32f2f':'#e8f5e9'}; color:${live.karari.includes('खत्म')?'#fff':'#000'}; padding:4px; border-radius:4px; text-align:center; font-size:11px;">${live.karari}</div>
       </div>
     `;
-  }catch(e){
-    document.getElementById('bandhakSearchResult').innerHTML = "<p style='color:red;text-align:center'>Net नहीं है या Error: "+e.message+"</p>";
-  }
+  }catch(e){ resultDiv.innerHTML = "<p style='color:red;text-align:center'>Error: "+e.message+"</p>"; }
 }
 
 function sDate(d){ try{ let dt=new Date(d); return dt.getDate()+"/"+(dt.getMonth()+1)+"/"+dt.getFullYear(); }catch(e){ return new Date().toDateString(); } }
@@ -280,39 +289,32 @@ function checkSub(){
   }catch(e){}
 }
 function payNow(){ let opt={key:RAZORPAY_LIVE_KEY, amount:9900, currency:"INR", name:"Vyapar Bandhu", description:"₹99 Recharge", handler:function(r){ let till=new Date().getTime()+30*86400000; let sub=JSON.parse(localStorage.getItem('vyapar_subscription')); sub.paidTill=till; sub.isPaid=true; localStorage.setItem('vyapar_subscription', JSON.stringify(sub)); autoSave(); document.getElementById('subscriptionOverlay').style.display="none"; alert("धन्यवाद मालिक!"); checkSub(); }, theme:{color:"#138808"}}; new Razorpay(opt).open(); }
-
 function saveKhata(n,e,a,s,g,l,k,d,m,ra,ph, bCode){
   let newKhata = {id:Date.now(), name:n, email:e, address:a, saman:s, gram:g, location:l, karari:k, date:d, mul:m, rate:ra, photo:ph, paymentHistory:[], bandhakCode:bCode};
   khataData.push(newKhata);
   autoSave();
   saveToPublicSearch(newKhata);
-  alert("सेव हो गया ✅ Bandhak Code: "+bCode+" | Gmail पर Sync हो गया");
+  alert("सेव हो गया ✅ Bandhak Code: "+bCode);
   showKhata(); checkSub();
 }
-
 function hisab(k){ let diff=Math.floor((new Date()-new Date(k.date))/86400000); let dm=diff/30.44; let cur=k.mul; let intr=0; if(dm<=12){ intr=(k.mul*k.rate*dm)/100; cur+=intr; } else { let fy=k.mul+(k.mul*k.rate*12)/100; cur=fy; for(let i=0;i<dm-12;i++) cur+=(cur*k.rate)/100; intr=cur-k.mul; } let paid=0; if(k.paymentHistory) k.paymentHistory.forEach(p=>paid+=p.amount); cur-=paid; if(cur<0) cur=0; let kar=""; if(k.karari){ kar=diff>parseInt(k.karari)?"⚠️ करारी खत्म! सामान टूट गया":"करारी बाकी: "+(parseInt(k.karari)-diff)+" दिन"; } return {total:cur, interest:intr, months:dm.toFixed(1), days:diff, karari:kar, paid:paid}; }
-
-function showKhata(f){ let data=f||khataData; let list=document.getElementById('khataList'); list.innerHTML="<h2 style='text-align:center;color:#138808'>📑 सभी खाते ("+data.length+")</h2>"; if(!data.length){ list.innerHTML+="<p style='text-align:center'>अभी कोई खाता नहीं - Gmail Sync ON है</p>"; return; } data.forEach(k=>{ let h=hisab(k); let photo=k.photo?`<img src="${k.photo}" onclick="window.open('${k.photo}')">`:""; let gram=k.gram?` - ${k.gram} ग्राम`:""; let loc=k.location?`<div class="row" style="color:#d32f2f;font-weight:bold"><span>कहां रखा है:</span><span>${k.location}</span></div>`:""; let codeRow = k.bandhakCode? `<div class="row" style="background:#eef2ff;font-weight:bold"><span>Bandhak Code:</span><span style="color:#000080">${k.bandhakCode}</span></div>` : ""; let pay=""; if(k.paymentHistory&&k.paymentHistory.length){ pay="<div style='background:#e8f5e9;padding:5px;border-radius:5px;margin-top:5px;font-size:12px'><b>जमा:</b> "; k.paymentHistory.forEach(p=>pay+=`₹${p.amount} | `); pay+="</div>"; } list.innerHTML+=`<div class="khata-card"><h3 style="color:#000080;margin:0 0 8px 0">${k.name}</h3>${photo}${codeRow}<div class="row"><span>सामान:</span><span>${k.saman}${gram}</span></div>${loc}<div class="row"><span>समय हुआ:</span><span>${h.months} महीना / ${h.days} दिन</span></div><div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div><div class="row"><span>ब्याज हुआ:</span><span>₹${h.interest.toFixed(2)}</span></div><div class="row"><span>जमा किया:</span><span>₹${h.paid.toFixed(2)}</span></div><div class="row total"><span>बकाया:</span><span>₹${h.total.toFixed(2)}</span></div>${pay}${h.karari?`<div class="danger">${h.karari}</div>`:''}<div style="margin-top:8px"><button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊 बोलें</button><button class="btn-small btn-payment" onclick="addPayment(${k.id})">💰 जमा</button><button class="btn-small btn-delete" onclick="deleteKhata(${k.id})">🗑️ चुकता</button><button class="btn-small btn-print-one" onclick="printOne(${k.id})">🖨️</button><button class="btn-small btn-mail-one" onclick="sendOneMail(${k.id})">📧</button><button class="btn-small" style="background:#000080" onclick="shareCode('${k.bandhakCode}')">🔗 Code Share</button></div></div>`; }); }
-
-function shareCode(code){ if(!code) return; let text = "आपका Bandhak Code: "+code+" | apnavyaparbandhu.in पर डालकर पूरा हिसाब देखो"; if(navigator.share){ navigator.share({title:"Bandhak Code", text:text}); } else { navigator.clipboard.writeText(text); alert("Code Copy हो गया: "+code); } }
-
-function bolKeBatao(k){ let h=hisab(k); let t=`${k.name} जी। Bandhak Code ${k.bandhakCode||''}। सामान है ${k.saman} ${k.gram?k.gram+' ग्राम':''}। रखा है ${k.location||'पता नहीं'}। ${h.months} महीना हुआ। मूलधन ${k.mul} रुपया। ब्याज ${Math.round(h.interest)} रुपया। जमा ${h.paid} रुपया। बकाया ${Math.round(h.total)} रुपया। ${h.karari}`; let s=new SpeechSynthesisUtterance(t); s.lang='hi-IN'; s.rate=0.9; speechSynthesis.speak(s); }
+function showKhata(f){ let data=f||khataData; let list=document.getElementById('khataList'); list.innerHTML="<h2 style='text-align:center;color:#138808'>📑 सभी खाते ("+data.length+")</h2>"; if(!data.length){ list.innerHTML+="<p style='text-align:center'>अभी कोई खाता नहीं - Gmail Sync ON है</p>"; return; } data.forEach(k=>{ let h=hisab(k); let photo=k.photo?`<img src="${k.photo}" onclick="window.open('${k.photo}')">`:""; let gram=k.gram?` - ${k.gram} ग्राम`:""; let loc=k.location?`<div class="row" style="color:#d32f2f;font-weight:bold"><span>कहां रखा है:</span><span>${k.location}</span></div>`:""; let codeRow = k.bandhakCode? `<div class="row" style="background:#eef2ff;font-weight:bold"><span>Bandhak Code:</span><span style="color:#000080">${k.bandhakCode}</span></div>` : ""; let pay=""; if(k.paymentHistory&&k.paymentHistory.length){ pay="<div style='background:#e8f5e9;padding:5px;border-radius:5px;margin-top:5px;font-size:12px'><b>जमा:</b> "; k.paymentHistory.forEach(p=>pay+=`₹${p.amount} | `); pay+="</div>"; } list.innerHTML+=`<div class="khata-card"><h3 style="color:#000080;margin:0 0 8px 0">${k.name}</h3>${photo}${codeRow}<div class="row"><span>सामान:</span><span>${k.saman}${gram}</span></div>${loc}<div class="row"><span>समय हुआ:</span><span>${h.months} महीना / ${h.days} दिन</span></div><div class="row"><span>मूलधन:</span><span>₹${k.mul.toFixed(2)}</span></div><div class="row"><span>ब्याज हुआ:</span><span>₹${h.interest.toFixed(2)}</span></div><div class="row"><span>जमा किया:</span><span>₹${h.paid.toFixed(2)}</span></div><div class="row total"><span>बकाया:</span><span>₹${h.total.toFixed(2)}</span></div>${pay}${h.karari?`<div class="danger">${h.karari}</div>`:''}<div style="margin-top:8px"><button class="btn-small btn-speak" onclick="bolKeBatao(khataData.find(x=>x.id==${k.id}))">🔊 बोलें</button><button class="btn-small btn-payment" onclick="addPayment(${k.id})">💰 जमा</button><button class="btn-small btn-delete" onclick="deleteKhata(${k.id})">🗑️ चुकता</button><button class="btn-small btn-print-one" onclick="printOne(${k.id})">🖨️</button><button class="btn-small btn-mail-one" onclick="sendOneMail(${k.id})">📧</button><button class="btn-small" style="background:#000080" onclick="shareCode('${k.bandhakCode}')">🔗 Code</button></div></div>`; }); }
+function shareCode(code){ if(!code) return; let text = "आपका Bandhak Code: "+code+" | apnavyaparbandhu.in पर बिना Login के Search करो"; if(navigator.share){ navigator.share({title:"Bandhak Code", text:text}); } else { navigator.clipboard.writeText(text); alert("Code Copy हो गया: "+code); } }
+function bolKeBatao(k){ let h=hisab(k); let t=`${k.name} जी। Bandhak Code ${k.bandhakCode||''}। सामान है ${k.saman} ${k.gram?k.gram+' ग्राम':''}। रखा है ${k.location||'पता नहीं'}। ${h.months} महीना हुआ। मूलधन ${k.mul} रुपया। ब्याज ${Math.round(h.interest)} रुपया। बकाया ${Math.round(h.total)} रुपया। ${h.karari}`; let s=new SpeechSynthesisUtterance(t); s.lang='hi-IN'; s.rate=0.9; speechSynthesis.speak(s); }
 function addPayment(id){ let k=khataData.find(x=>x.id==id); let a=prompt(k.name+" ने कितना जमा किया?",""); if(a>0){ k.paymentHistory.push({amount:parseFloat(a), date:Date.now()}); autoSave(); if(k.bandhakCode) saveToPublicSearch(k); showKhata(); } }
-function deleteKhata(id){ if(confirm("Delete? Gmail se bhi delete hoga")){ let k=khataData.find(x=>x.id==id); khataData=khataData.filter(x=>x.id!=id); autoSave(); if(k && k.bandhakCode){ db.collection('bandhak_codes').doc(k.bandhakCode).delete(); } showKhata(); checkSub(); } }
+function deleteKhata(id){ if(confirm("Delete?")){ let k=khataData.find(x=>x.id==id); khataData=khataData.filter(x=>x.id!=id); autoSave(); if(k && k.bandhakCode){ db.collection('bandhak_codes').doc(k.bandhakCode).delete(); } showKhata(); checkSub(); } }
 function printOne(id){ let k=khataData.find(x=>x.id==id); let h=hisab(k); let w=window.open('','','width=500'); w.document.write(`<h2>${k.name} - ${k.bandhakCode||''}</h2><p>${k.saman}</p><p>₹${h.total.toFixed(2)}</p>`); w.print(); }
 function printAll(){ let w=window.open('','','width=500'); let ht="<h2>पूरा हिसाब</h2>"; khataData.forEach(k=>{ let h=hisab(k); ht+=`<p>${k.name} (${k.bandhakCode||''}) - ₹${h.total.toFixed(2)}</p>`; }); w.document.write(ht); w.print(); }
 function searchKhata(){ let q=document.getElementById('searchInput').value.toLowerCase(); showKhata(khataData.filter(k=>k.name.toLowerCase().includes(q) || (k.bandhakCode && k.bandhakCode.toLowerCase().includes(q)) )); }
 function sendOneMail(id){ alert("Gmail feature jaldi ayega"); }
 function sendAllMail(){ alert("Gmail feature jaldi ayega"); }
-
 document.getElementById('samanLocation').addEventListener('input', function(){
   let code = generateBandhakCode(this.value);
   let prev = document.getElementById('generatedCodePreview');
   prev.style.display='block';
-  prev.innerText = "🔑 बनेगा Bandhak Code: "+code+" (खाता जोड़ते ही बनेगा)";
+  prev.innerText = "🔑 बनेगा Bandhak Code: "+code;
   prev.dataset.code = code;
 });
-
 document.getElementById('udharDate').valueAsDate=new Date();
 document.getElementById('datePreview').innerText="तारीख: "+sDate(new Date());
 document.getElementById('btnAdd').onclick=function(){
